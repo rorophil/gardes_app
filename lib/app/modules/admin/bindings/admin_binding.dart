@@ -1,10 +1,10 @@
 // Admin binding
 import 'package:get/get.dart';
-import '../../../controllers/admin_controller.dart';
-import '../../../controllers/doctor_management_controller.dart';
-import '../../../controllers/doctor_form_controller.dart';
-import '../../../controllers/service_management_controller.dart';
-import '../../../controllers/service_form_controller.dart';
+import '../controllers/admin_controller.dart';
+import '../controllers/doctor_management_controller.dart';
+import '../controllers/doctor_form_controller.dart';
+import '../controllers/service_management_controller.dart';
+import '../controllers/service_form_controller.dart';
 
 class AdminBinding extends Bindings {
   @override
