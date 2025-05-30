@@ -5,26 +5,29 @@ import '../../../data/services/auth_service.dart';
 import '../../../routes/app_routes.dart';
 
 class AdminController extends GetxController {
-  final AuthService _authService = Get.find<AuthService>();
+  final AuthService _authService;
   //final DatabaseService _databaseService = Get.find<DatabaseService>();
-  
+
+  AdminController({AuthService? authService})
+    : _authService = authService ?? Get.find<AuthService>();
+
   void logout() {
     _authService.logout();
     Get.offAllNamed(AppRoutes.LOGIN);
   }
-  
+
   void goToDoctorManagement() {
     Get.toNamed(AppRoutes.DOCTOR_MANAGEMENT);
   }
-  
+
   void goToServiceManagement() {
     Get.toNamed(AppRoutes.SERVICE_MANAGEMENT);
   }
-  
+
   void goToScheduleGeneration() {
     Get.toNamed(AppRoutes.SCHEDULE_GENERATION);
   }
-  
+
   void goToScheduleView() {
     Get.toNamed(AppRoutes.SCHEDULE_VIEW);
   }
