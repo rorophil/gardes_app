@@ -23,6 +23,8 @@ class ScheduleGenerationController extends GetxController {
   
   final RxString generationStatus = ''.obs;
   
+  Function(int year, int month, List<Service> services)? navigateToScheduleView;
+  
   @override
   void onInit() {
     super.onInit();
@@ -102,11 +104,15 @@ class ScheduleGenerationController extends GetxController {
       );
       
       // Navigate to schedule view
-      Get.toNamed(AppRoutes.SCHEDULE_VIEW, arguments: {
-        'year': selectedYear.value,
-        'month': selectedMonth.value,
-        'services': selectedServices.take(3).toList(),
-      });
+      if (navigateToScheduleView != null) {
+        navigateToScheduleView!(selectedYear.value, selectedMonth.value, selectedServices.take(3).toList());
+      } else {
+        Get.toNamed(AppRoutes.SCHEDULE_VIEW, arguments: {
+          'year': selectedYear.value,
+          'month': selectedMonth.value,
+          'services': selectedServices.take(3).toList(),
+        });
+      }
       
     } catch (e) {
       Get.snackbar(

@@ -6,13 +6,11 @@ import 'package:realm/realm.dart';
 import 'package:gardes_app/app/data/services/database_service.dart';
 import 'package:gardes_app/app/data/services/schedule_service.dart';
 import 'package:gardes_app/app/data/models/doctor_model.dart';
-import 'package:gardes_app/app/data/models/service_model.dart';
 import 'package:gardes_app/app/data/models/schedule_model.dart';
-import 'package:gardes_app/app/modules/schedule/controllers/schedule_view_controller.dart';
+import 'package:gardes_app/app/data/models/service_model.dart';
 import 'package:gardes_app/app/modules/schedule/controllers/schedule_view_controller.dart';
 
-import '../../admin/bindings/admin_binding_test.dart';
-import 'schedule_controller_test.dart';
+import 'schedule_view_controller_test.mocks.dart';
 
 @GenerateMocks([DatabaseService, ScheduleService])
 void main() {
@@ -20,14 +18,32 @@ void main() {
   late MockScheduleService mockScheduleService;
   late ScheduleViewController controller;
 
-  // Test data
-  final testDoctor = Doctor(
+  // Create test data
+  final testService1 = Service(
     ObjectId(),
-    'Nom',
-    'Prénom',
-    'login',
+    'Service Test 1',
+    true,
+    false,
+    false,
+    false,
+  );
+
+  final testService2 = Service(
+    ObjectId(),
+    'Service Test 2',
+    false,
+    true,
+    true,
+    false,
+  );
+
+  final testDoctor1 = Doctor(
+    ObjectId(),
+    'Dupont',
+    'Jean',
+    'jdupont',
     'password',
-    true, // anesthésiste
+    true,
     false,
     false,
     false,
@@ -35,69 +51,57 @@ void main() {
     2,
   );
 
-  final testServiceAnesthesie = Service(
+  final testDoctor2 = Doctor(
     ObjectId(),
-    'Anesthésie',
-    true,
-    false,
-    false,
-    false,
-  );
-
-  final testServicePediatrie = Service(
-    ObjectId(),
-    'Pédiatrie',
+    'Martin',
+    'Marie',
+    'mmartin',
+    'password',
     false,
     true,
+    true,
     false,
-    false,
+    8,
+    3,
   );
 
-  final testSchedules = [
-    Schedule(
-      ObjectId(),
-      testDoctor.id,
-      testServiceAnesthesie.id,
-      DateTime(2023, 10, 15),
-    ),
-    Schedule(
-      ObjectId(),
-      testDoctor.id,
-      testServiceAnesthesie.id,
-      DateTime(2023, 10, 16),
-    ),
-  ];
+  final testDate = DateTime(2023, 10, 15);
+  
+  final testSchedule1 = Schedule(ObjectId(), testDoctor1.id, testService1.id, testDate);
+  final testSchedule2 = Schedule(ObjectId(), testDoctor2.id, testService2.id, testDate);
+  
+  final List<Service> testServices = [testService1, testService2];
+  final List<Doctor> testDoctors = [testDoctor1, testDoctor2];
+  
+  final Map<ObjectId, List<Schedule>> testSchedulesByService = {
+    testService1.id: [testSchedule1],
+    testService2.id: [testSchedule2],
+  };
 
   setUp(() {
     mockDatabaseService = MockDatabaseService();
     mockScheduleService = MockScheduleService();
-
-    // Configure mocks
-    when(
-      mockDatabaseService.getAllServices(),
-    ).thenReturn([testServiceAnesthesie, testServicePediatrie]);
-    when(mockDatabaseService.getAllDoctors()).thenReturn([testDoctor]);
-    when(
-      mockDatabaseService.getSchedulesByService(
-        testServiceAnesthesie,
-        2023,
-        10,
-      ),
-    ).thenReturn(testSchedules);
-    when(mockDatabaseService.getDoctor(testDoctor.id)).thenReturn(testDoctor);
-
-    // Register mocks with Get.put so they are available via Get.find
+    
+    // Initialize the GetX dependency injection
     Get.put<DatabaseService>(mockDatabaseService);
     Get.put<ScheduleService>(mockScheduleService);
-
+    
+    // Configure mocks
+    when(mockDatabaseService.getAllServices()).thenReturn(testServices);
+    when(mockDatabaseService.getAllDoctors()).thenReturn(testDoctors);
+    when(mockDatabaseService.getSchedulesByService(any, any, any))
+        .thenAnswer((invocation) {
+          final service = invocation.positionalArguments[0] as Service;
+          return testSchedulesByService[service.id] ?? [];
+        });
+    when(mockDatabaseService.getDoctor(any))
+        .thenAnswer((invocation) {
+          final doctorId = invocation.positionalArguments[0] as ObjectId;
+          return testDoctors.firstWhere((d) => d.id == doctorId, orElse: () => testDoctor1);
+        });
+        
     // Initialize controller
     controller = ScheduleViewController();
-
-    // Set controller values manually for testing
-    controller.selectedYear.value = 2023;
-    controller.selectedMonth.value = 10;
-    controller.services.value = [testServiceAnesthesie, testServicePediatrie];
-    controller.displayedServices.value = [testServiceAnesthesie];
   });
 
   tearDown(() {
@@ -105,75 +109,136 @@ void main() {
   });
 
   group('ScheduleViewController Tests', () {
-    test('should load services and schedules on init', () async {
+    test('should load services on init', () {
+      expect(controller.services, equals(testServices));
+    });
+    
+    test('should set default displayed services', () {
+      expect(controller.displayedServices.length, greaterThan(0));
+      expect(controller.displayedServices.length, lessThanOrEqualTo(3));
+    });
+
+    test('should load schedules for services', () async {
       await controller.loadSchedules();
-
-      verify(
-        mockDatabaseService.getSchedulesByService(
-          testServiceAnesthesie,
-          2023,
-          10,
-        ),
-      ).called(1);
-      expect(controller.displayedServices, contains(testServiceAnesthesie));
-      expect(
-        controller.schedulesByService.value.containsKey(
-          testServiceAnesthesie.id,
-        ),
-        isTrue,
-      );
+      
+      for (final service in controller.displayedServices) {
+        expect(controller.schedulesByService.value.containsKey(service.id), isTrue);
+      }
+      
+      verify(mockDatabaseService.getSchedulesByService(
+        any, 
+        controller.selectedYear.value, 
+        controller.selectedMonth.value
+      )).called(controller.displayedServices.length);
     });
 
-    test('should filter doctors who can work in displayed services', () {
+    test('should filter available doctors', () {
+      controller.displayedServices.value = [testService1]; // Only anesthesiste required
       controller.loadAvailableDoctors();
-
-      // Since the test doctor is an anesthesiologist and the displayed service requires anesthesiologists
-      expect(controller.availableDoctors, contains(testDoctor));
+      
+      expect(controller.availableDoctors, contains(testDoctor1)); // Has anesthesiste
+      expect(controller.availableDoctors, isNot(contains(testDoctor2))); // Doesn't have anesthesiste
     });
 
-    test('should correctly determine if a doctor can work in a service', () {
-      // This doctor is an anesthesiologist and can work in the anesthesia service
-      expect(
-        controller._canDoctorWorkInService(testDoctor, testServiceAnesthesie),
-        isTrue,
-      );
-
-      // But not in the pediatric service which requires pediatric doctors
-      expect(
-        controller._canDoctorWorkInService(testDoctor, testServicePediatrie),
-        isFalse,
-      );
+    test('should check if doctor can work in service', () {
+      expect(controller.canDoctorWorkInService(testDoctor1, testService1), isTrue); // Anesthesiste
+      expect(controller.canDoctorWorkInService(testDoctor2, testService1), isFalse); // Not anesthesiste
+      expect(controller.canDoctorWorkInService(testDoctor2, testService2), isTrue); // Pediatrique and SAMU
     });
 
-    test('should find a schedule for a specific day', () {
-      controller.schedulesByService.value = {
-        testServiceAnesthesie.id: testSchedules,
-      };
-
-      // Should find the schedule for the 15th
-      expect(
-        controller.getScheduleForDay(testServiceAnesthesie, 15),
-        equals(testSchedules[0]),
-      );
-
-      // But not for the 17th
-      expect(controller.getScheduleForDay(testServiceAnesthesie, 17), isNull);
+    test('should change displayed services and reload schedules', () async {
+      final newServices = [testService2];
+      controller.changeDisplayedServices(newServices);
+      
+      expect(controller.displayedServices, equals(newServices));
+      verify(mockDatabaseService.getSchedulesByService(
+        testService2, 
+        controller.selectedYear.value, 
+        controller.selectedMonth.value
+      )).called(1);
     });
 
-    test('should correctly format month names', () {
-      expect(controller.getMonthName(1), equals('Janvier'));
-      expect(controller.getMonthName(12), equals('Décembre'));
-      expect(controller.getMonthName(5), equals('Mai'));
+    test('should change month and reload schedules', () async {
+      final newYear = 2024;
+      final newMonth = 3;
+      controller.changeMonth(newYear, newMonth);
+      
+      expect(controller.selectedYear.value, equals(newYear));
+      expect(controller.selectedMonth.value, equals(newMonth));
+      
+      for (final service in controller.displayedServices) {
+        verify(mockDatabaseService.getSchedulesByService(service, newYear, newMonth)).called(1);
+      }
     });
 
-    test('should correctly format day of week names', () {
-      // In 2023, Oct 15 was a Sunday
+    test('should get schedule for specific day', () {
       controller.selectedYear.value = 2023;
       controller.selectedMonth.value = 10;
-      expect(controller.getDayOfWeek(15), equals('Dim'));
+      controller.schedulesByService.value = testSchedulesByService;
+      
+      final schedule = controller.getScheduleForDay(testService1, 15);
+      expect(schedule, equals(testSchedule1));
+      
+      final noSchedule = controller.getScheduleForDay(testService1, 16);
+      expect(noSchedule, isNull);
+    });
 
-      // Oct 16 was a Monday
+    test('should get doctor by id', () {
+      controller.availableDoctors.value = testDoctors;
+      
+      final doctor = controller.getDoctorById(testDoctor1.id);
+      expect(doctor, equals(testDoctor1));
+      
+      verify(mockDatabaseService.getDoctor(any)).called(0); // Should find in available doctors
+      
+      // Test with doctor not in availableDoctors
+      controller.availableDoctors.value = [];
+      final doctor2 = controller.getDoctorById(testDoctor2.id);
+      expect(doctor2, isNotNull);
+      
+      verify(mockDatabaseService.getDoctor(any)).called(1); // Should query database
+    });
+    
+    test('should handle drag and drop operations for schedules', () {
+      controller.startDragSchedule(testSchedule1);
+      expect(controller.draggedSchedule.value, equals(testSchedule1));
+      
+      controller.endDrag();
+      expect(controller.draggedSchedule.value, isNull);
+      
+      // Test schedule drop acceptance
+      controller.startDragSchedule(testSchedule1);
+      controller.schedulesByService.value = testSchedulesByService;
+      controller.selectedYear.value = 2023;
+      controller.selectedMonth.value = 10;
+      
+      final canAccept = controller.acceptScheduleDrop(testService2, 15);
+      expect(canAccept, isTrue);
+      
+      // Test complete schedule drop
+      when(mockScheduleService.swapDoctors(any, any)).thenAnswer((_) => null);
+      controller.completeScheduleDrop(testService2, 15);
+      
+      verify(mockScheduleService.swapDoctors(testSchedule1, testSchedule2)).called(1);
+      expect(controller.draggedSchedule.value, isNull); // Should reset drag state
+    });
+    
+    test('should format month names correctly', () {
+      expect(controller.getMonthName(1), equals('Janvier'));
+      expect(controller.getMonthName(6), equals('Juin'));
+      expect(controller.getMonthName(12), equals('Décembre'));
+    });
+    
+    test('should format day of week correctly', () {
+      controller.selectedYear.value = 2023;
+      controller.selectedMonth.value = 10;
+      
+      // October 16, 2023 was a Monday
       expect(controller.getDayOfWeek(16), equals('Lun'));
+      // October 20, 2023 was a Friday
+      expect(controller.getDayOfWeek(20), equals('Ven'));
+      // October 22, 2023 was a Sunday
+      expect(controller.getDayOfWeek(22), equals('Dim'));
     });
   });
 }

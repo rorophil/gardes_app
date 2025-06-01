@@ -100,7 +100,7 @@ class ScheduleViewController extends GetxController {
     // If we have displayed services, filter doctors who can work in at least one of them
     if (displayedServices.isNotEmpty) {
       availableDoctors.value = allDoctors.where((doctor) {
-        return displayedServices.any((service) => _canDoctorWorkInService(doctor, service));
+        return displayedServices.any((service) => canDoctorWorkInService(doctor, service));
       }).toList();
     } else {
       availableDoctors.value = allDoctors;
@@ -111,7 +111,7 @@ class ScheduleViewController extends GetxController {
   }
   
   // Helper method to check if a doctor can work in a service
-  bool _canDoctorWorkInService(Doctor doctor, Service service) {
+  bool canDoctorWorkInService(Doctor doctor, Service service) {
     // Un docteur peut travailler dans un service s'il a au moins un des privilèges requis
     if (service.requiresAnesthesiste && doctor.isAnesthesiste) return true;
     if (service.requiresPediatrique && doctor.isPediatrique) return true;
@@ -204,7 +204,7 @@ class ScheduleViewController extends GetxController {
     final date = DateTime(selectedYear.value, selectedMonth.value, day);
     
     // Check if the doctor can work in this service using our helper
-    if (!_canDoctorWorkInService(doctor, targetService)) return false;
+    if (!canDoctorWorkInService(doctor, targetService)) return false;
     
     // Check if the target date has a schedule
     final targetSchedule = getScheduleForDay(targetService, day);
