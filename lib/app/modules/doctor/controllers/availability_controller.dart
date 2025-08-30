@@ -4,19 +4,19 @@ import 'package:flutter/material.dart';
 //import 'package:realm/realm.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/database_service.dart';
-import '../../../data/models/doctor_model.dart';
+import '../../../data/models/doctor_hive_model.dart';
 
 class AvailabilityController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
   final DatabaseService _databaseService = Get.find<DatabaseService>();
-  
-  final Rx<Doctor?> currentDoctor = Rx<Doctor?>(null);
-  
+
+  final Rx<DoctorHive?> currentDoctor = Rx<DoctorHive?>(null);
+
   final RxList<String> unavailableDays = <String>[].obs;
   final Rx<DateTime> selectedDate = DateTime.now().obs;
   final RxInt selectedYear = DateTime.now().year.obs;
   final RxInt selectedMonth = DateTime.now().month.obs;
-  
+
   @override
   void onInit() {
     super.onInit();
@@ -25,44 +25,44 @@ class AvailabilityController extends GetxController {
       unavailableDays.value = currentDoctor.value!.joursIndisponibles.toList();
     }
   }
-  
+
   void toggleDateAvailability(DateTime date) {
     if (currentDoctor.value == null) return;
-    
+
     String dateString = _formatDateForStorage(date);
     List<String> updatedUnavailableDays = [...unavailableDays];
-    
+
     // Mise à jour de la liste locale
     if (updatedUnavailableDays.contains(dateString)) {
       updatedUnavailableDays.remove(dateString);
     } else {
       updatedUnavailableDays.add(dateString);
     }
-    
-    // Création d'une nouvelle instance de Doctor avec les jours indisponibles mis à jour
+
+    // Création d'une nouvelle instance de DoctorHive avec les jours indisponibles mis à jour
     final doctor = currentDoctor.value!;
-    final updatedDoctor = Doctor(
-      doctor.id,
-      doctor.nom,
-      doctor.prenom,
-      doctor.login,
-      doctor.password,
-      doctor.isAnesthesiste,
-      doctor.isPediatrique,
-      doctor.isSamu,
-      doctor.isIntensiviste,
-      doctor.maxGardesParMois,
-      doctor.joursMinEntreGardes,
-      joursIndisponibles: updatedUnavailableDays
+    final updatedDoctor = DoctorHive(
+      id: doctor.id,
+      nom: doctor.nom,
+      prenom: doctor.prenom,
+      login: doctor.login,
+      password: doctor.password,
+      isAnesthesiste: doctor.isAnesthesiste,
+      isPediatrique: doctor.isPediatrique,
+      isSamu: doctor.isSamu,
+      isIntensiviste: doctor.isIntensiviste,
+      maxGardesParMois: doctor.maxGardesParMois,
+      joursMinEntreGardes: doctor.joursMinEntreGardes,
+      joursIndisponibles: updatedUnavailableDays,
     );
-    
+
     // Mise à jour du docteur dans la base de données
     _databaseService.updateDoctor(updatedDoctor);
-    
+
     // Mise à jour du docteur courant et de la liste locale
     currentDoctor.value = updatedDoctor;
     unavailableDays.value = updatedUnavailableDays;
-    
+
     Get.snackbar(
       'Mise à jour',
       'Disponibilité mise à jour pour le ${_formatDateForDisplay(date)}',
@@ -72,20 +72,20 @@ class AvailabilityController extends GetxController {
       duration: const Duration(seconds: 1),
     );
   }
-  
+
   bool isDateUnavailable(DateTime date) {
     String dateString = _formatDateForStorage(date);
     return unavailableDays.contains(dateString);
   }
-  
+
   String _formatDateForStorage(DateTime date) {
     return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
-  
+
   String _formatDateForDisplay(DateTime date) {
     return "${date.day}/${date.month}/${date.year}";
   }
-  
+
   void changeMonth(int year, int month) {
     selectedYear.value = year;
     selectedMonth.value = month;

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/doctor_controller.dart';
 import '../../../global_widgets/app_widgets.dart';
-import '../../../data/models/schedule_model.dart';
+import '../../../data/models/schedule_hive_model.dart';
 //import '../../../data/models/service_model.dart';
 
 class DoctorDashboardView extends GetView<DoctorController> {
@@ -13,9 +13,9 @@ class DoctorDashboardView extends GetView<DoctorController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Obx(() => Text(
-          'Bonjour ${controller.currentDoctor.value?.prenom ?? ""}'
-        )),
+        title: Obx(
+          () => Text('Bonjour ${controller.currentDoctor.value?.prenom ?? ""}'),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -40,24 +40,26 @@ class DoctorDashboardView extends GetView<DoctorController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Obx(() => Text(
-                      'Médecin: ${controller.currentDoctor.value?.nom ?? ""} ${controller.currentDoctor.value?.prenom ?? ""}',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    Obx(
+                      () => Text(
+                        'Médecin: ${controller.currentDoctor.value?.nom ?? ""} ${controller.currentDoctor.value?.prenom ?? ""}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    )),
+                    ),
                     const SizedBox(height: 8),
                     Obx(() {
                       final doctor = controller.currentDoctor.value;
                       if (doctor == null) return const SizedBox();
-                      
+
                       List<String> privileges = [];
                       if (doctor.isAnesthesiste) privileges.add('Anesthésiste');
                       if (doctor.isPediatrique) privileges.add('Pédiatrique');
                       if (doctor.isSamu) privileges.add('SAMU');
                       if (doctor.isIntensiviste) privileges.add('Intensiviste');
-                      
+
                       return Text(
                         'Privilèges: ${privileges.join(", ")}',
                         style: const TextStyle(fontSize: 16),
@@ -67,17 +69,14 @@ class DoctorDashboardView extends GetView<DoctorController> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             Row(
               children: [
                 const Text(
                   'Mes Gardes',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
                 AppButton(
@@ -87,9 +86,9 @@ class DoctorDashboardView extends GetView<DoctorController> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             Expanded(
               child: Obx(() {
                 if (controller.isLoading.value) {
@@ -111,16 +110,16 @@ class DoctorDashboardView extends GetView<DoctorController> {
       ),
     );
   }
-  
+
   Widget _buildSchedulesList() {
     final schedulesByMonth = controller.getSchedulesByMonth();
-    
+
     return ListView.builder(
       itemCount: schedulesByMonth.length,
       itemBuilder: (context, index) {
         final monthKey = schedulesByMonth.keys.elementAt(index);
         final monthSchedules = schedulesByMonth[monthKey]!;
-        
+
         return Card(
           margin: const EdgeInsets.only(bottom: 16),
           child: Column(
@@ -154,47 +153,59 @@ class DoctorDashboardView extends GetView<DoctorController> {
       },
     );
   }
-  
-  Widget _buildScheduleItem(Schedule schedule) {
+
+  Widget _buildScheduleItem(ScheduleHive schedule) {
     final date = schedule.date;
     // Récupérer le service à partir de l'ID
     final service = controller.getServiceById(schedule.serviceId);
-    
+
     Color badgeColor;
     if (date.weekday == DateTime.friday) {
       badgeColor = Colors.orange;
-    } else if (date.weekday == DateTime.saturday || date.weekday == DateTime.sunday) {
+    } else if (date.weekday == DateTime.saturday ||
+        date.weekday == DateTime.sunday) {
       badgeColor = Colors.red;
     } else {
       badgeColor = Colors.green;
     }
-    
+
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: badgeColor,
         child: Text(
           date.day.toString(),
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       title: Text(service?.nom ?? 'Service inconnu'),
       subtitle: Text('${_getDayOfWeek(date.weekday)} ${_formatDate(date)}'),
     );
   }
-  
+
   String _getDayOfWeek(int weekday) {
     switch (weekday) {
-      case DateTime.monday: return 'Lundi';
-      case DateTime.tuesday: return 'Mardi';
-      case DateTime.wednesday: return 'Mercredi';
-      case DateTime.thursday: return 'Jeudi';
-      case DateTime.friday: return 'Vendredi';
-      case DateTime.saturday: return 'Samedi';
-      case DateTime.sunday: return 'Dimanche';
-      default: return '';
+      case DateTime.monday:
+        return 'Lundi';
+      case DateTime.tuesday:
+        return 'Mardi';
+      case DateTime.wednesday:
+        return 'Mercredi';
+      case DateTime.thursday:
+        return 'Jeudi';
+      case DateTime.friday:
+        return 'Vendredi';
+      case DateTime.saturday:
+        return 'Samedi';
+      case DateTime.sunday:
+        return 'Dimanche';
+      default:
+        return '';
     }
   }
-  
+
   String _formatDate(DateTime date) {
     return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
   }

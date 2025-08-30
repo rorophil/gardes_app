@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/service_management_controller.dart';
-import '../../../data/models/service_model.dart';
+import '../../../data/models/service_hive_model.dart';
 
 class ServiceManagementView extends GetView<ServiceManagementController> {
   const ServiceManagementView({super.key});
@@ -65,11 +65,9 @@ class ServiceManagementView extends GetView<ServiceManagementController> {
                     ),
                   ),
                 ),
-                
+
                 // Services list
-                Expanded(
-                  child: _buildServicesList(),
-                ),
+                Expanded(child: _buildServicesList()),
               ],
             ),
           );
@@ -77,7 +75,7 @@ class ServiceManagementView extends GetView<ServiceManagementController> {
       }),
     );
   }
-  
+
   Widget _buildServicesList() {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -91,7 +89,7 @@ class ServiceManagementView extends GetView<ServiceManagementController> {
       },
     );
   }
-  
+
   Widget _buildDataTable() {
     return Card(
       child: SingleChildScrollView(
@@ -101,39 +99,46 @@ class ServiceManagementView extends GetView<ServiceManagementController> {
             DataColumn(label: Text('Privilèges Requis')),
             DataColumn(label: Text('Actions')),
           ],
-          rows: controller.services.map((service) {
-            return DataRow(
-              cells: [
-                DataCell(Text(service.nom)),
-                DataCell(Text(_getPrivilegesText(service))),
-                DataCell(Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.blue),
-                      onPressed: () => controller.editService(service),
-                      tooltip: 'Modifier',
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.calendar_month, color: Colors.green),
-                      onPressed: () => controller.manageBlockedDays(service),
-                      tooltip: 'Gérer les jours bloqués',
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => controller.deleteService(service),
-                      tooltip: 'Supprimer',
+          rows:
+              controller.services.map((service) {
+                return DataRow(
+                  cells: [
+                    DataCell(Text(service.nom)),
+                    DataCell(Text(_getPrivilegesText(service))),
+                    DataCell(
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () => controller.editService(service),
+                            tooltip: 'Modifier',
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.calendar_month,
+                              color: Colors.green,
+                            ),
+                            onPressed:
+                                () => controller.manageBlockedDays(service),
+                            tooltip: 'Gérer les jours bloqués',
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => controller.deleteService(service),
+                            tooltip: 'Supprimer',
+                          ),
+                        ],
+                      ),
                     ),
                   ],
-                )),
-              ],
-            );
-          }).toList(),
+                );
+              }).toList(),
         ),
       ),
     );
   }
-  
+
   Widget _buildListView() {
     return ListView.builder(
       itemCount: controller.services.length,
@@ -167,14 +172,14 @@ class ServiceManagementView extends GetView<ServiceManagementController> {
       },
     );
   }
-  
-  String _getPrivilegesText(Service service) {
+
+  String _getPrivilegesText(ServiceHive service) {
     List<String> privileges = [];
     if (service.requiresAnesthesiste) privileges.add('Anesthésiste');
     if (service.requiresPediatrique) privileges.add('Pédiatrique');
     if (service.requiresSamu) privileges.add('SAMU');
     if (service.requiresIntensiviste) privileges.add('Intensiviste');
-    
+
     return privileges.isEmpty ? 'Aucun' : privileges.join(', ');
   }
 }

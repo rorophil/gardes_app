@@ -3,59 +3,60 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 //import 'package:realm/realm.dart';
 import '../../../data/services/database_service.dart';
-import '../../../data/models/doctor_model.dart';
+import '../../../data/models/doctor_hive_model.dart';
 
 class DoctorFormController extends GetxController {
   final DatabaseService _databaseService = Get.find<DatabaseService>();
-  
+
   final formKey = GlobalKey<FormState>();
   final nomController = TextEditingController();
   final prenomController = TextEditingController();
   final loginController = TextEditingController();
   final passwordController = TextEditingController();
-  
+
   final RxBool isAnesthesiste = false.obs;
   final RxBool isPediatrique = false.obs;
   final RxBool isSamu = false.obs;
   final RxBool isIntensiviste = false.obs;
-  
+
   final RxInt maxGardesParMois = 10.obs;
   final RxInt joursMinEntreGardes = 3.obs;
   final RxList<String> joursIndisponibles = <String>[].obs;
-  
+
   final RxBool isEditing = false.obs;
-  late Rx<Doctor?> currentDoctor = Rx<Doctor?>(null);
-  
+  late Rx<DoctorHive?> currentDoctor = Rx<DoctorHive?>(null);
+
   @override
   void onInit() {
     super.onInit();
-    
-    if (Get.arguments != null && Get.arguments is Doctor) {
+
+    if (Get.arguments != null && Get.arguments is DoctorHive) {
       isEditing.value = true;
-      currentDoctor.value = Get.arguments as Doctor;
+      currentDoctor.value = Get.arguments as DoctorHive;
       _loadDoctorData();
     }
   }
-  
+
   void _loadDoctorData() {
     final doctor = currentDoctor.value;
     if (doctor != null) {
       nomController.text = doctor.nom;
       prenomController.text = doctor.prenom;
       loginController.text = doctor.login;
-      passwordController.text = '********'; // Don't show actual password for security
-      
+      passwordController.text =
+          '********'; // Don't show actual password for security
+
       isAnesthesiste.value = doctor.isAnesthesiste;
       isPediatrique.value = doctor.isPediatrique;
       isSamu.value = doctor.isSamu;
       isIntensiviste.value = doctor.isIntensiviste;
-      
+
       maxGardesParMois.value = doctor.maxGardesParMois;
       joursMinEntreGardes.value = doctor.joursMinEntreGardes;
       joursIndisponibles.value = doctor.joursIndisponibles.toList();
     }
   }
-  
+
   @override
   void onClose() {
     nomController.dispose();
@@ -64,43 +65,46 @@ class DoctorFormController extends GetxController {
     passwordController.dispose();
     super.onClose();
   }
-  
+
   String? validateRequiredField(String? value) {
     if (value == null || value.isEmpty) {
       return 'Ce champ est obligatoire';
     }
     return null;
   }
-  
+
   Future<void> saveDoctor() async {
     if (!formKey.currentState!.validate()) {
       return;
     }
-    
+
     try {
       if (isEditing.value && currentDoctor.value != null) {
         // Update doctor
         final doctor = currentDoctor.value!;
-        
+
         // Mise à jour des propriétés du docteur
-        final updatedDoctor = Doctor(
-          doctor.id,
-          nomController.text.trim(),
-          prenomController.text.trim(),
-          loginController.text.trim(),
+        final updatedDoctor = DoctorHive(
+          id: doctor.id,
+          nom: nomController.text.trim(),
+          prenom: prenomController.text.trim(),
+          login: loginController.text.trim(),
           // Only update password if it was changed (not stars)
-          passwordController.text != '********' ? passwordController.text : doctor.password,
-          isAnesthesiste.value,
-          isPediatrique.value,
-          isSamu.value,
-          isIntensiviste.value,
-          maxGardesParMois.value,
-          joursMinEntreGardes.value,
-          joursIndisponibles: joursIndisponibles
+          password:
+              passwordController.text != '********'
+                  ? passwordController.text
+                  : doctor.password,
+          isAnesthesiste: isAnesthesiste.value,
+          isPediatrique: isPediatrique.value,
+          isSamu: isSamu.value,
+          isIntensiviste: isIntensiviste.value,
+          maxGardesParMois: maxGardesParMois.value,
+          joursMinEntreGardes: joursMinEntreGardes.value,
+          joursIndisponibles: joursIndisponibles,
         );
-        
+
         _databaseService.updateDoctor(updatedDoctor);
-        
+
         Get.back();
         Get.snackbar(
           'Succès',
@@ -122,9 +126,9 @@ class DoctorFormController extends GetxController {
           isIntensiviste: isIntensiviste.value,
           maxGardesParMois: maxGardesParMois.value,
           joursMinEntreGardes: joursMinEntreGardes.value,
-          joursIndisponibles: joursIndisponibles
+          joursIndisponibles: joursIndisponibles,
         );
-        
+
         Get.back();
         Get.snackbar(
           'Succès',

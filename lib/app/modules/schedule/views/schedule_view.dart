@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 //import 'package:realm/realm.dart';
 import '../controllers/schedule_view_controller.dart';
-import '../../../data/models/service_model.dart';
-import '../../../data/models/doctor_model.dart';
-import '../../../data/models/schedule_model.dart';
+import '../../../data/models/service_hive_model.dart';
+import '../../../data/models/doctor_hive_model.dart';
+import '../../../data/models/schedule_hive_model.dart';
 //import '../../../global_widgets/app_widgets.dart';
 
 class ScheduleView extends GetView<ScheduleViewController> {
@@ -15,9 +15,11 @@ class ScheduleView extends GetView<ScheduleViewController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Obx(() => Text(
-          'Planning - ${controller.getMonthName(controller.selectedMonth.value)} ${controller.selectedYear.value}'
-        )),
+        title: Obx(
+          () => Text(
+            'Planning - ${controller.getMonthName(controller.selectedMonth.value)} ${controller.selectedYear.value}',
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -49,46 +51,59 @@ class ScheduleView extends GetView<ScheduleViewController> {
                               const SizedBox(width: 8),
                               DropdownButton<int>(
                                 value: controller.selectedYear.value,
-                                items: List<int>.generate(5, (i) => DateTime.now().year + i - 1)
-                                    .map((int value) {
-                                  return DropdownMenuItem<int>(
-                                    value: value,
-                                    child: Text(value.toString()),
-                                  );
-                                }).toList(),
+                                items:
+                                    List<int>.generate(
+                                      5,
+                                      (i) => DateTime.now().year + i - 1,
+                                    ).map((int value) {
+                                      return DropdownMenuItem<int>(
+                                        value: value,
+                                        child: Text(value.toString()),
+                                      );
+                                    }).toList(),
                                 onChanged: (int? value) {
                                   if (value != null) {
-                                    controller.changeMonth(value, controller.selectedMonth.value);
+                                    controller.changeMonth(
+                                      value,
+                                      controller.selectedMonth.value,
+                                    );
                                   }
                                 },
                               ),
                               const SizedBox(width: 8),
                               DropdownButton<int>(
                                 value: controller.selectedMonth.value,
-                                items: List<int>.generate(12, (i) => i + 1)
-                                    .map((int value) {
-                                  return DropdownMenuItem<int>(
-                                    value: value,
-                                    child: Text(controller.getMonthName(value)),
-                                  );
-                                }).toList(),
+                                items:
+                                    List<int>.generate(12, (i) => i + 1).map((
+                                      int value,
+                                    ) {
+                                      return DropdownMenuItem<int>(
+                                        value: value,
+                                        child: Text(
+                                          controller.getMonthName(value),
+                                        ),
+                                      );
+                                    }).toList(),
                                 onChanged: (int? value) {
                                   if (value != null) {
-                                    controller.changeMonth(controller.selectedYear.value, value);
+                                    controller.changeMonth(
+                                      controller.selectedYear.value,
+                                      value,
+                                    );
                                   }
                                 },
                               ),
                             ],
                           ),
                         ),
-                        
+
                         // Service selector
                         Expanded(
                           child: Row(
                             children: [
                               const Text('Services:'),
                               const SizedBox(width: 8),
-                              PopupMenuButton<List<Service>>(
+                              PopupMenuButton<List<ServiceHive>>(
                                 tooltip: 'Sélectionner les services',
                                 onSelected: controller.changeDisplayedServices,
                                 itemBuilder: (context) {
@@ -97,7 +112,7 @@ class ScheduleView extends GetView<ScheduleViewController> {
                                     // Limited to 3 services max
                                     ...List.generate(
                                       controller.services.length,
-                                      (i) => PopupMenuItem<List<Service>>(
+                                      (i) => PopupMenuItem<List<ServiceHive>>(
                                         value: [controller.services[i]],
                                         child: Text(controller.services[i].nom),
                                       ),
@@ -107,7 +122,10 @@ class ScheduleView extends GetView<ScheduleViewController> {
                                 child: Chip(
                                   label: const Text('Choisir les services'),
                                   avatar: const Icon(Icons.local_hospital),
-                                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                                  backgroundColor:
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.primaryContainer,
                                 ),
                               ),
                             ],
@@ -117,25 +135,19 @@ class ScheduleView extends GetView<ScheduleViewController> {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Main content - services and doctors
                 Expanded(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Services schedules
-                      Expanded(
-                        flex: 3,
-                        child: _buildSchedulesTables(),
-                      ),
-                      
+                      Expanded(flex: 3, child: _buildSchedulesTables()),
+
                       // Doctors list
-                      Expanded(
-                        flex: 1,
-                        child: _buildDoctorsList(),
-                      ),
+                      Expanded(flex: 1, child: _buildDoctorsList()),
                     ],
                   ),
                 ),
@@ -146,77 +158,86 @@ class ScheduleView extends GetView<ScheduleViewController> {
       ),
     );
   }
-  
+
   Widget _buildSchedulesTables() {
     // Get days in month
-    final daysInMonth = DateTime(
-      controller.selectedYear.value, 
-      controller.selectedMonth.value + 1, 
-      0
-    ).day;
-    
+    final daysInMonth =
+        DateTime(
+          controller.selectedYear.value,
+          controller.selectedMonth.value + 1,
+          0,
+        ).day;
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: controller.displayedServices.map((service) {
-          return Card(
-            margin: const EdgeInsets.only(right: 8),
-            child: Container(
-              width: 200,
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                children: [
-                  // Service header
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    color: Colors.indigo.shade100,
-                    child: Text(
-                      service.nom,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+        children:
+            controller.displayedServices.map((service) {
+              return Card(
+                margin: const EdgeInsets.only(right: 8),
+                child: Container(
+                  width: 200,
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    children: [
+                      // Service header
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        color: Colors.indigo.shade100,
+                        child: Text(
+                          service.nom,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                      textAlign: TextAlign.center,
-                    ),
+
+                      const SizedBox(height: 8),
+
+                      // Days list
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: daysInMonth,
+                        itemBuilder: (context, index) {
+                          final day = index + 1;
+                          return _buildDaySchedule(service, day);
+                        },
+                      ),
+                    ],
                   ),
-                  
-                  const SizedBox(height: 8),
-                  
-                  // Days list
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: daysInMonth,
-                    itemBuilder: (context, index) {
-                      final day = index + 1;
-                      return _buildDaySchedule(service, day);
-                    },
-                  ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
+                ),
+              );
+            }).toList(),
       ),
     );
   }
-  
-  Widget _buildDaySchedule(Service service, int day) {
+
+  Widget _buildDaySchedule(ServiceHive service, int day) {
     final schedule = controller.getScheduleForDay(service, day);
-    final date = DateTime(controller.selectedYear.value, controller.selectedMonth.value, day);
-    
+    final date = DateTime(
+      controller.selectedYear.value,
+      controller.selectedMonth.value,
+      day,
+    );
+
     // Determine background color based on weekday
     Color backgroundColor = Colors.transparent;
     if (date.weekday == DateTime.friday) {
       backgroundColor = Colors.orange.withOpacity(0.1);
-    } else if (date.weekday == DateTime.saturday || date.weekday == DateTime.sunday) {
+    } else if (date.weekday == DateTime.saturday ||
+        date.weekday == DateTime.sunday) {
       backgroundColor = Colors.red.withOpacity(0.1);
     }
-    
-    return DragTarget<Doctor>(
-      onWillAcceptWithDetails: (doctor) => controller.acceptDoctorDrop(service, day),
-      onAcceptWithDetails: (doctor) => controller.completeDoctorDrop(service, day),
+
+    return DragTarget<DoctorHive>(
+      onWillAcceptWithDetails:
+          (doctor) => controller.acceptDoctorDrop(service, day),
+      onAcceptWithDetails:
+          (doctor) => controller.completeDoctorDrop(service, day),
       builder: (context, candidateData, rejectedData) {
         return Container(
           margin: const EdgeInsets.symmetric(vertical: 2),
@@ -237,41 +258,49 @@ class ScheduleView extends GetView<ScheduleViewController> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 13,
-                    fontWeight: date.weekday == DateTime.saturday || 
-                               date.weekday == DateTime.sunday 
-                        ? FontWeight.bold 
-                        : FontWeight.normal,
+                    fontWeight:
+                        date.weekday == DateTime.saturday ||
+                                date.weekday == DateTime.sunday
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                   ),
                 ),
               ),
-              
+
               const SizedBox(width: 8),
-              
+
               // Doctor assignment
               Expanded(
-                child: schedule != null
-                    ? Draggable<Schedule>(
-                        data: schedule,
-                        onDragStarted: () => controller.startDragSchedule(schedule),
-                        onDragEnd: (details) => controller.endDrag(),
-                        feedback: Material(
-                          elevation: 4,
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            color: Colors.white,
-                            child: Text(
-                              _getDoctorDisplayName(schedule),
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                child:
+                    schedule != null
+                        ? Draggable<ScheduleHive>(
+                          data: schedule,
+                          onDragStarted:
+                              () => controller.startDragSchedule(schedule),
+                          onDragEnd: (details) => controller.endDrag(),
+                          feedback: Material(
+                            elevation: 4,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              color: Colors.white,
+                              child: Text(
+                                _getDoctorDisplayName(schedule),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
+                          child: Text(
+                            _getDoctorDisplayName(schedule),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        )
+                        : const Text(
+                          'Non assigné',
+                          style: TextStyle(color: Colors.grey),
                         ),
-                        child: Text(
-                          _getDoctorDisplayName(schedule),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      )
-                    : const Text('Non assigné', style: TextStyle(color: Colors.grey)),
               ),
             ],
           ),
@@ -279,7 +308,7 @@ class ScheduleView extends GetView<ScheduleViewController> {
       },
     );
   }
-  
+
   Widget _buildDoctorsList() {
     return Card(
       child: Padding(
@@ -293,16 +322,13 @@ class ScheduleView extends GetView<ScheduleViewController> {
               color: Colors.indigo.shade100,
               child: const Text(
                 'Médecins disponibles',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 textAlign: TextAlign.center,
               ),
             ),
-            
+
             const SizedBox(height: 8),
-            
+
             Expanded(
               child: ListView.builder(
                 itemCount: controller.availableDoctors.length,
@@ -317,9 +343,9 @@ class ScheduleView extends GetView<ScheduleViewController> {
       ),
     );
   }
-  
-  Widget _buildDoctorItem(Doctor doctor) {
-    return Draggable<Doctor>(
+
+  Widget _buildDoctorItem(DoctorHive doctor) {
+    return Draggable<DoctorHive>(
       data: doctor,
       onDragStarted: () => controller.startDragDoctor(doctor),
       onDragEnd: (details) => controller.endDrag(),
@@ -337,25 +363,23 @@ class ScheduleView extends GetView<ScheduleViewController> {
       child: ListTile(
         title: Text('${doctor.nom} ${doctor.prenom}'),
         subtitle: Text(_getPrivilegesText(doctor)),
-        leading: const CircleAvatar(
-          child: Icon(Icons.person),
-        ),
+        leading: const CircleAvatar(child: Icon(Icons.person)),
       ),
     );
   }
-  
-  String _getPrivilegesText(Doctor doctor) {
+
+  String _getPrivilegesText(DoctorHive doctor) {
     List<String> privileges = [];
     if (doctor.isAnesthesiste) privileges.add('A');
     if (doctor.isPediatrique) privileges.add('P');
     if (doctor.isSamu) privileges.add('S');
     if (doctor.isIntensiviste) privileges.add('I');
-    
+
     return privileges.isEmpty ? 'Aucun' : privileges.join(', ');
   }
-  
+
   // Récupère le nom du médecin à afficher à partir de l'ID
-  String _getDoctorDisplayName(Schedule schedule) {
+  String _getDoctorDisplayName(ScheduleHive schedule) {
     final doctor = controller.getDoctorById(schedule.doctorId);
     if (doctor == null) {
       return 'Médecin inconnu';

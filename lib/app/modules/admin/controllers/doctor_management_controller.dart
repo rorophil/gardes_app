@@ -2,21 +2,21 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../../data/services/database_service.dart';
-import '../../../data/models/doctor_model.dart';
+import '../../../data/models/doctor_hive_model.dart';
 import '../../../routes/app_routes.dart';
 
 class DoctorManagementController extends GetxController {
   final DatabaseService _databaseService = Get.find<DatabaseService>();
-  
-  final RxList<Doctor> doctors = <Doctor>[].obs;
+
+  final RxList<DoctorHive> doctors = <DoctorHive>[].obs;
   final RxBool isLoading = true.obs;
-  
+
   @override
   void onInit() {
     super.onInit();
     loadDoctors();
   }
-  
+
   Future<void> loadDoctors() async {
     isLoading.value = true;
     try {
@@ -33,33 +33,32 @@ class DoctorManagementController extends GetxController {
       isLoading.value = false;
     }
   }
-  
+
   void createDoctor() {
     Get.toNamed(AppRoutes.DOCTOR_FORM)?.then((_) => loadDoctors());
   }
-  
-  void editDoctor(Doctor doctor) {
+
+  void editDoctor(DoctorHive doctor) {
     Get.toNamed(
       AppRoutes.DOCTOR_FORM,
       arguments: doctor,
     )?.then((_) => loadDoctors());
   }
-  
-  void deleteDoctor(Doctor doctor) {
+
+  void deleteDoctor(DoctorHive doctor) {
     Get.dialog(
       AlertDialog(
         title: const Text('Confirmation'),
-        content: Text('Voulez-vous vraiment supprimer le médecin ${doctor.nom} ${doctor.prenom}?'),
+        content: Text(
+          'Voulez-vous vraiment supprimer le médecin ${doctor.nom} ${doctor.prenom}?',
+        ),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Annuler'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Annuler')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
               try {
-                _databaseService.deleteDoctor(doctor);
+                _databaseService.deleteDoctor(doctor.id);
                 Get.back();
                 loadDoctors();
                 Get.snackbar(

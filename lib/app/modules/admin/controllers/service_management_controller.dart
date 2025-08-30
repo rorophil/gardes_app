@@ -2,21 +2,21 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../../data/services/database_service.dart';
-import '../../../data/models/service_model.dart';
+import '../../../data/models/service_hive_model.dart';
 import '../../../routes/app_routes.dart';
 
 class ServiceManagementController extends GetxController {
   final DatabaseService _databaseService = Get.find<DatabaseService>();
-  
-  final RxList<Service> services = <Service>[].obs;
+
+  final RxList<ServiceHive> services = <ServiceHive>[].obs;
   final RxBool isLoading = true.obs;
-  
+
   @override
   void onInit() {
     super.onInit();
     loadServices();
   }
-  
+
   Future<void> loadServices() async {
     isLoading.value = true;
     try {
@@ -33,33 +33,32 @@ class ServiceManagementController extends GetxController {
       isLoading.value = false;
     }
   }
-  
+
   void createService() {
     Get.toNamed(AppRoutes.SERVICE_FORM)?.then((_) => loadServices());
   }
-  
-  void editService(Service service) {
+
+  void editService(ServiceHive service) {
     Get.toNamed(
       AppRoutes.SERVICE_FORM,
       arguments: service,
     )?.then((_) => loadServices());
   }
-  
-  void deleteService(Service service) {
+
+  void deleteService(ServiceHive service) {
     Get.dialog(
       AlertDialog(
         title: const Text('Confirmation'),
-        content: Text('Voulez-vous vraiment supprimer le service ${service.nom}?'),
+        content: Text(
+          'Voulez-vous vraiment supprimer le service ${service.nom}?',
+        ),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Annuler'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Annuler')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
               try {
-                _databaseService.deleteService(service);
+                _databaseService.deleteService(service.id);
                 Get.back();
                 loadServices();
                 Get.snackbar(
@@ -86,8 +85,8 @@ class ServiceManagementController extends GetxController {
       ),
     );
   }
-  
-  void manageBlockedDays(Service service) {
+
+  void manageBlockedDays(ServiceHive service) {
     // This will be implemented in another view
     Get.toNamed(
       AppRoutes.SERVICE_FORM,

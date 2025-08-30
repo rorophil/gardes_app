@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'app/data/providers/dependency_injection.dart';
 import 'app/routes/app_routes.dart';
 import 'app/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialiser Hive
+  await Hive.initFlutter();
+
   await DependencyInjection.init();
   runApp(const MyApp());
 }

@@ -1,0 +1,9 @@
+targets:
+  $default:
+    builders:
+      hive_generator|hive_generator:
+        options:
+          exclude:
+            - lib/app/data/models/doctor_model.dart
+            - lib/app/data/models/service_model.dart
+            - lib/app/data/models/schedule_model.dart

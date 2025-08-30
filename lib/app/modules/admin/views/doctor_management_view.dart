@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/doctor_management_controller.dart';
-import '../../../data/models/doctor_model.dart';
+import '../../../data/models/doctor_hive_model.dart';
 
 class DoctorManagementView extends GetView<DoctorManagementController> {
   const DoctorManagementView({super.key});
@@ -28,11 +28,7 @@ class DoctorManagementView extends GetView<DoctorManagementController> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.person_off,
-                  size: 60,
-                  color: Colors.grey,
-                ),
+                const Icon(Icons.person_off, size: 60, color: Colors.grey),
                 const SizedBox(height: 16),
                 const Text(
                   'Aucun médecin trouvé',
@@ -65,11 +61,9 @@ class DoctorManagementView extends GetView<DoctorManagementController> {
                     ),
                   ),
                 ),
-                
+
                 // Doctors list
-                Expanded(
-                  child: _buildDoctorsList(),
-                ),
+                Expanded(child: _buildDoctorsList()),
               ],
             ),
           );
@@ -77,7 +71,7 @@ class DoctorManagementView extends GetView<DoctorManagementController> {
       }),
     );
   }
-  
+
   Widget _buildDoctorsList() {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -91,7 +85,7 @@ class DoctorManagementView extends GetView<DoctorManagementController> {
       },
     );
   }
-  
+
   Widget _buildDataTable() {
     return Card(
       child: SingleChildScrollView(
@@ -104,37 +98,40 @@ class DoctorManagementView extends GetView<DoctorManagementController> {
             DataColumn(label: Text('Max Gardes/Mois')),
             DataColumn(label: Text('Actions')),
           ],
-          rows: controller.doctors.map((doctor) {
-            return DataRow(
-              cells: [
-                DataCell(Text(doctor.nom)),
-                DataCell(Text(doctor.prenom)),
-                DataCell(Text(doctor.login)),
-                DataCell(Text(_getPrivilegesText(doctor))),
-                DataCell(Text(doctor.maxGardesParMois.toString())),
-                DataCell(Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.blue),
-                      onPressed: () => controller.editDoctor(doctor),
-                      tooltip: 'Modifier',
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => controller.deleteDoctor(doctor),
-                      tooltip: 'Supprimer',
+          rows:
+              controller.doctors.map((doctor) {
+                return DataRow(
+                  cells: [
+                    DataCell(Text(doctor.nom)),
+                    DataCell(Text(doctor.prenom)),
+                    DataCell(Text(doctor.login)),
+                    DataCell(Text(_getPrivilegesText(doctor))),
+                    DataCell(Text(doctor.maxGardesParMois.toString())),
+                    DataCell(
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () => controller.editDoctor(doctor),
+                            tooltip: 'Modifier',
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => controller.deleteDoctor(doctor),
+                            tooltip: 'Supprimer',
+                          ),
+                        ],
+                      ),
                     ),
                   ],
-                )),
-              ],
-            );
-          }).toList(),
+                );
+              }).toList(),
         ),
       ),
     );
   }
-  
+
   Widget _buildListView() {
     return ListView.builder(
       itemCount: controller.doctors.length,
@@ -170,14 +167,14 @@ class DoctorManagementView extends GetView<DoctorManagementController> {
       },
     );
   }
-  
-  String _getPrivilegesText(Doctor doctor) {
+
+  String _getPrivilegesText(DoctorHive doctor) {
     List<String> privileges = [];
     if (doctor.isAnesthesiste) privileges.add('Anesthésiste');
     if (doctor.isPediatrique) privileges.add('Pédiatrique');
     if (doctor.isSamu) privileges.add('SAMU');
     if (doctor.isIntensiviste) privileges.add('Intensiviste');
-    
+
     return privileges.isEmpty ? 'Aucun' : privileges.join(', ');
   }
 }

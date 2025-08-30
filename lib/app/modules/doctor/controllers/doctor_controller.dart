@@ -1,26 +1,25 @@
 // Doctor module controller
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:realm/realm.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/database_service.dart';
-import '../../../data/models/doctor_model.dart';
-import '../../../data/models/schedule_model.dart';
-import '../../../data/models/service_model.dart';
+import '../../../data/models/doctor_hive_model.dart';
+import '../../../data/models/schedule_hive_model.dart';
+import '../../../data/models/service_hive_model.dart';
 import '../../../routes/app_routes.dart';
 
 class DoctorController extends GetxController {
   final AuthService _authService;
   final DatabaseService _databaseService;
 
-  final Rx<Doctor?> currentDoctor = Rx<Doctor?>(null);
-  final RxList<Schedule> schedules = <Schedule>[].obs;
+  final Rx<DoctorHive?> currentDoctor = Rx<DoctorHive?>(null);
+  final RxList<ScheduleHive> schedules = <ScheduleHive>[].obs;
 
   DoctorController({AuthService? authService, DatabaseService? databaseService})
     : _authService = authService ?? Get.find<AuthService>(),
       _databaseService = databaseService ?? Get.find<DatabaseService>();
   // Cache des services pour affichage
-  final RxMap<ObjectId, Service> servicesCache = RxMap<ObjectId, Service>();
+  final RxMap<String, ServiceHive> servicesCache = RxMap<String, ServiceHive>();
   final RxBool isLoading = true.obs;
 
   @override
@@ -66,12 +65,12 @@ class DoctorController extends GetxController {
   }
 
   // Récupérer un service par son ID
-  Service? getServiceById(ObjectId serviceId) {
+  ServiceHive? getServiceById(String serviceId) {
     if (servicesCache.containsKey(serviceId)) {
       return servicesCache[serviceId];
     }
     // Si non trouvé dans le cache, charger depuis la base de données
-    final service = _databaseService.getService(serviceId);
+    final service = _databaseService.getServiceById(serviceId);
     if (service != null) {
       servicesCache[serviceId] = service;
     }
@@ -88,8 +87,8 @@ class DoctorController extends GetxController {
   }
 
   // Group schedules by month for display
-  Map<String, List<Schedule>> getSchedulesByMonth() {
-    Map<String, List<Schedule>> result = {};
+  Map<String, List<ScheduleHive>> getSchedulesByMonth() {
+    Map<String, List<ScheduleHive>> result = {};
 
     for (final schedule in schedules) {
       final key = '${schedule.date.year}-${schedule.date.month}';
