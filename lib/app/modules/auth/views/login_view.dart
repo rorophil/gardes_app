@@ -1,4 +1,5 @@
-// Login view
+/// Vue de connexion pour l'authentification des utilisateurs
+/// Interface utilisateur pour la saisie des identifiants
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
@@ -53,12 +54,14 @@ class LoginView extends GetView<AuthController> {
                           validator: controller.validatePassword,
                         ),
                         const SizedBox(height: 24),
-                        Obx(() => AppButton(
-                              text: 'Connexion',
-                              onPressed: controller.login,
-                              isLoading: controller.isLoading.value,
-                              icon: Icons.login,
-                            )),
+                        Obx(
+                          () => AppButton(
+                            text: 'Connexion',
+                            onPressed: controller.login,
+                            isLoading: controller.isLoading.value,
+                            icon: Icons.login,
+                          ),
+                        ),
                         const SizedBox(height: 16),
                         Obx(() {
                           if (controller.errorMessage.isNotEmpty) {
@@ -74,7 +77,7 @@ class LoginView extends GetView<AuthController> {
                             );
                           }
                           return const SizedBox.shrink();
-                        })
+                        }),
                       ],
                     ),
                   ),

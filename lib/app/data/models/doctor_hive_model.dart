@@ -1,8 +1,10 @@
-// Doctor model for Hive database
+/// Modèle de données pour un médecin utilisant Hive pour la persistance
+/// Contient toutes les informations nécessaires pour la gestion des gardes
 import 'package:hive/hive.dart';
 
 part 'doctor_hive_model.g.dart';
 
+/// Énumération des privilèges médicaux disponibles
 enum Privilege { anesthesiste, pediatrique, samu, intensiviste }
 
 @HiveType(typeId: 0)
@@ -35,18 +37,31 @@ class DoctorHive extends HiveObject {
   @HiveField(8)
   late bool isIntensiviste;
 
-  // Unavailable days stored as ISO date strings (YYYY-MM-DD)
+  // Jours indisponibles stockés comme chaînes de dates ISO (YYYY-MM-DD)
   @HiveField(9)
   late List<String> joursIndisponibles;
 
-  // Maximum number of shifts per month
+  // Nombre maximum de gardes par mois
   @HiveField(10)
   late int maxGardesParMois;
 
-  // Minimum days between shifts
+  // Nombre minimum de jours entre deux gardes
   @HiveField(11)
   late int joursMinEntreGardes;
 
+  /// Constructeur pour créer une nouvelle instance de DoctorHive
+  /// [id] : Identifiant unique du médecin
+  /// [nom] : Nom de famille du médecin
+  /// [prenom] : Prénom du médecin
+  /// [login] : Identifiant de connexion
+  /// [password] : Mot de passe
+  /// [isAnesthesiste] : Privilège anesthésiste
+  /// [isPediatrique] : Privilège pédiatrique
+  /// [isSamu] : Privilège SAMU
+  /// [isIntensiviste] : Privilège intensiviste
+  /// [joursIndisponibles] : Liste des jours où le médecin n'est pas disponible
+  /// [maxGardesParMois] : Nombre maximum de gardes par mois
+  /// [joursMinEntreGardes] : Nombre minimum de jours entre deux gardes
   DoctorHive({
     required this.id,
     required this.nom,
@@ -62,7 +77,9 @@ class DoctorHive extends HiveObject {
     required this.joursMinEntreGardes,
   });
 
-  // Helper method to check if the doctor has a specific privilege
+  /// Vérifie si le médecin possède un privilège spécifique
+  /// [privilege] : Le privilège à vérifier
+  /// Retourne true si le médecin possède le privilège
   bool hasPrivilege(Privilege privilege) {
     switch (privilege) {
       case Privilege.anesthesiste:
@@ -76,19 +93,24 @@ class DoctorHive extends HiveObject {
     }
   }
 
-  // Helper method to get display name
+  /// Retourne le nom complet du médecin pour l'affichage
   String get displayName => '$prenom $nom';
 
-  // Helper method to check if doctor is available on a specific date
+  /// Vérifie si le médecin est disponible à une date donnée
+  /// [date] : La date à vérifier
+  /// Retourne true si le médecin est disponible
   bool isAvailableOn(DateTime date) {
     final dateString = date.toIso8601String().substring(0, 10);
     return !joursIndisponibles.contains(dateString);
   }
 
-  // Alias for compatibility with schedule service
+  /// Alias pour la compatibilité avec le service de planification
+  /// [date] : La date à vérifier
+  /// Retourne true si le médecin peut prendre une garde
   bool canTakeShiftOn(DateTime date) => isAvailableOn(date);
 
-  // Helper method to add unavailable day
+  /// Ajoute un jour d'indisponibilité
+  /// [date] : La date à ajouter comme indisponible
   void addUnavailableDay(DateTime date) {
     final dateString = date.toIso8601String().substring(0, 10);
     if (!joursIndisponibles.contains(dateString)) {
@@ -96,7 +118,8 @@ class DoctorHive extends HiveObject {
     }
   }
 
-  // Helper method to remove unavailable day
+  /// Supprime un jour d'indisponibilité
+  /// [date] : La date à retirer de la liste des indisponibilités
   void removeUnavailableDay(DateTime date) {
     final dateString = date.toIso8601String().substring(0, 10);
     joursIndisponibles.remove(dateString);

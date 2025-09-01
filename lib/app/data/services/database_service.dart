@@ -1,4 +1,5 @@
-// Database service for Hive
+/// Service de base de données utilisant Hive pour la persistance locale
+/// Gère les opérations CRUD pour les médecins, services et plannings
 import 'package:hive/hive.dart';
 import '../models/doctor_hive_model.dart';
 import '../models/service_hive_model.dart';
@@ -10,6 +11,9 @@ class DatabaseService extends GetxService {
   late final Box<ServiceHive> _servicesBox;
   late final Box<ScheduleHive> _schedulesBox;
 
+  /// Initialise le service de base de données
+  /// Enregistre les adaptateurs Hive et ouvre les boîtes
+  /// Retourne l'instance du service initialisée
   Future<DatabaseService> init() async {
     // Enregistrer les adapters Hive
     if (!Hive.isAdapterRegistered(0)) {
@@ -30,16 +34,41 @@ class DatabaseService extends GetxService {
     return this;
   }
 
-  // =============== DOCTOR OPERATIONS ===============
+  // =============== OPÉRATIONS MÉDECINS ===============
 
+  /// Récupère tous les médecins de la base de données
+  /// Retourne une liste de tous les médecins
   List<DoctorHive> getAllDoctors() {
     return _doctorsBox.values.toList();
   }
 
+  /// Récupère un médecin par son ID
+  /// [id] : L'identifiant du médecin
+  /// Retourne le médecin ou null s'il n'existe pas
   DoctorHive? getDoctor(String id) {
     return _doctorsBox.get(id);
   }
 
+  /// Alias pour getDoctor pour la compatibilité
+  /// [id] : L'identifiant du médecin
+  /// Retourne le médecin ou null s'il n'existe pas
+  DoctorHive? getDoctorById(String id) {
+    return getDoctor(id);
+  }
+
+  /// Crée un nouveau médecin dans la base de données
+  /// [nom] : Nom de famille du médecin
+  /// [prenom] : Prénom du médecin
+  /// [login] : Identifiant de connexion
+  /// [password] : Mot de passe
+  /// [isAnesthesiste] : Privilège anesthésiste
+  /// [isPediatrique] : Privilège pédiatrique
+  /// [isSamu] : Privilège SAMU
+  /// [isIntensiviste] : Privilège intensiviste
+  /// [maxGardesParMois] : Nombre maximum de gardes par mois
+  /// [joursMinEntreGardes] : Nombre minimum de jours entre gardes
+  /// [joursIndisponibles] : Liste des jours indisponibles (optionnel)
+  /// Retourne le médecin créé
   Future<DoctorHive> createDoctor({
     required String nom,
     required String prenom,
@@ -77,20 +106,35 @@ class DatabaseService extends GetxService {
     await _doctorsBox.put(doctor.id, doctor);
   }
 
+  /// Supprime un médecin de la base de données
+  /// [id] : L'identifiant du médecin à supprimer
   Future<void> deleteDoctor(String id) async {
     await _doctorsBox.delete(id);
   }
 
-  // =============== SERVICE OPERATIONS ===============
+  // =============== OPÉRATIONS SERVICES ===============
 
+  /// Récupère tous les services de la base de données
+  /// Retourne une liste de tous les services
   List<ServiceHive> getAllServices() {
     return _servicesBox.values.toList();
   }
 
+  /// Récupère un service par son ID
+  /// [id] : L'identifiant du service
+  /// Retourne le service ou null s'il n'existe pas
   ServiceHive? getService(String id) {
     return _servicesBox.get(id);
   }
 
+  /// Crée un nouveau service dans la base de données
+  /// [nom] : Nom du service
+  /// [requiresAnesthesiste] : Privilège anesthésiste requis
+  /// [requiresPediatrique] : Privilège pédiatrique requis
+  /// [requiresSamu] : Privilège SAMU requis
+  /// [requiresIntensiviste] : Privilège intensiviste requis
+  /// [joursBloquees] : Liste des jours bloqués (optionnel)
+  /// Retourne le service créé
   Future<ServiceHive> createService({
     required String nom,
     required bool requiresAnesthesiste,
@@ -114,20 +158,30 @@ class DatabaseService extends GetxService {
     return service;
   }
 
+  /// Met à jour un service existant
+  /// [service] : Le service avec les nouvelles données
   Future<void> updateService(ServiceHive service) async {
     await _servicesBox.put(service.id, service);
   }
 
+  /// Supprime un service de la base de données
+  /// [id] : L'identifiant du service à supprimer
   Future<void> deleteService(String id) async {
     await _servicesBox.delete(id);
   }
 
-  // =============== SCHEDULE OPERATIONS ===============
+  // =============== OPÉRATIONS PLANNINGS ===============
 
+  /// Récupère tous les plannings de la base de données
+  /// Retourne une liste de tous les plannings
   List<ScheduleHive> getAllSchedules() {
     return _schedulesBox.values.toList();
   }
 
+  /// Récupère les plannings d'un mois spécifique
+  /// [year] : L'année
+  /// [month] : Le mois (1-12)
+  /// Retourne une liste des plannings du mois
   List<ScheduleHive> getSchedulesByMonth(int year, int month) {
     final startDate = DateTime(year, month, 1);
     final endDate = DateTime(year, month + 1, 0); // Last day of month
@@ -141,6 +195,10 @@ class DatabaseService extends GetxService {
     }).toList();
   }
 
+  /// Récupère les plannings pour une période donnée
+  /// [startDate] : Date de début de la période
+  /// [endDate] : Date de fin de la période
+  /// Retourne une liste des plannings dans la période
   List<ScheduleHive> getSchedulesByDateRange(
     DateTime startDate,
     DateTime endDate,
@@ -154,6 +212,11 @@ class DatabaseService extends GetxService {
     }).toList();
   }
 
+  /// Crée un nouveau planning
+  /// [doctorId] : Identifiant du médecin
+  /// [serviceId] : Identifiant du service
+  /// [date] : Date de la garde
+  /// Retourne le planning créé
   Future<ScheduleHive> createSchedule({
     required String doctorId,
     required String serviceId,
@@ -171,20 +234,32 @@ class DatabaseService extends GetxService {
     return schedule;
   }
 
+  /// Met à jour un planning existant
+  /// [schedule] : Le planning avec les nouvelles données
   Future<void> updateSchedule(ScheduleHive schedule) async {
     await _schedulesBox.put(schedule.id, schedule);
   }
 
+  /// Supprime un planning de la base de données
+  /// [id] : L'identifiant du planning à supprimer
   Future<void> deleteSchedule(String id) async {
     await _schedulesBox.delete(id);
   }
 
+  /// Récupère les plannings d'un médecin
+  /// [doctor] : Le médecin pour lequel récupérer les plannings
+  /// Retourne une liste des plannings du médecin
   List<ScheduleHive> getSchedulesByDoctor(DoctorHive doctor) {
     return _schedulesBox.values
         .where((schedule) => schedule.doctorId == doctor.id)
         .toList();
   }
 
+  /// Récupère les plannings d'un service sur une période
+  /// [service] : Le service pour lequel récupérer les plannings
+  /// [startDate] : Date de début de la période
+  /// [endDate] : Date de fin de la période
+  /// Retourne une liste des plannings du service sur la période
   List<ScheduleHive> getSchedulesByService(
     ServiceHive service,
     DateTime startDate,
@@ -200,8 +275,12 @@ class DatabaseService extends GetxService {
         .toList();
   }
 
-  // =============== AUTHENTICATION ===============
+  // =============== AUTHENTIFICATION ===============
 
+  /// Authentifie un médecin avec son login et mot de passe
+  /// [login] : Identifiant de connexion
+  /// [password] : Mot de passe
+  /// Retourne le médecin authentifié ou null si échec
   DoctorHive? authenticateDoctor(String login, String password) {
     for (var doctor in _doctorsBox.values) {
       if (doctor.login == login && doctor.password == password) {
@@ -211,12 +290,11 @@ class DatabaseService extends GetxService {
     return null;
   }
 
-  // =============== HELPER METHODS ===============
+  // =============== MÉTHODES AUXILIAIRES ===============
 
-  DoctorHive? getDoctorById(String id) {
-    return _doctorsBox.get(id);
-  }
-
+  /// Récupère un service par son ID
+  /// [id] : L'identifiant du service
+  /// Retourne le service ou null s'il n'existe pas
   ServiceHive? getServiceById(String id) {
     return _servicesBox.get(id);
   }

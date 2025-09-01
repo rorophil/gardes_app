@@ -1,4 +1,5 @@
-// Service management controller
+/// Contrôleur pour la gestion des services dans l'interface d'administration
+/// Gère la liste, création, modification et suppression des services
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../../data/services/database_service.dart';
@@ -8,6 +9,7 @@ import '../../../routes/app_routes.dart';
 class ServiceManagementController extends GetxController {
   final DatabaseService _databaseService = Get.find<DatabaseService>();
 
+  // Variables réactives pour l'état de la liste
   final RxList<ServiceHive> services = <ServiceHive>[].obs;
   final RxBool isLoading = true.obs;
 
@@ -17,6 +19,8 @@ class ServiceManagementController extends GetxController {
     loadServices();
   }
 
+  /// Charge la liste des services depuis la base de données
+  /// Met à jour l'interface utilisateur avec les données récupérées
   Future<void> loadServices() async {
     isLoading.value = true;
     try {

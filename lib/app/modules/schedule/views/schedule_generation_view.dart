@@ -5,9 +5,27 @@ import '../controllers/schedule_generation_controller.dart';
 import '../../../global_widgets/app_widgets.dart';
 //import '../../../data/models/service_model.dart';
 
+/// Vue de génération des plannings
+///
+/// Cette vue permet aux administrateurs de générer automatiquement
+/// les plannings de garde pour une période donnée.
+///
+/// Les fonctionnalités incluent :
+/// - Sélection du mois et de l'année
+/// - Choix du service médical
+/// - Génération automatique équitable des gardes
+/// - Prise en compte des indisponibilités et jours bloqués
+/// - Prévisualisation du planning généré
+/// - Sauvegarde des plannings
 class ScheduleGenerationView extends GetView<ScheduleGenerationController> {
+  /// Constructeur de la vue de génération des plannings
   const ScheduleGenerationView({super.key});
 
+  /// Construit l'interface utilisateur de génération des plannings
+  ///
+  /// Affiche les contrôles de sélection et le bouton de génération
+  ///
+  /// Returns : Widget Scaffold contenant l'interface de génération
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,48 +67,65 @@ class ScheduleGenerationView extends GetView<ScheduleGenerationController> {
                           children: [
                             const Text('Année:'),
                             const SizedBox(width: 16),
-                            Obx(() => DropdownButton<int>(
-                              value: controller.selectedYear.value,
-                              items: List<int>.generate(5, (i) => DateTime.now().year + i - 1)
-                                  .map((int value) {
-                                return DropdownMenuItem<int>(
-                                  value: value,
-                                  child: Text(value.toString()),
-                                );
-                              }).toList(),
-                              onChanged: (int? value) {
-                                if (value != null) {
-                                  controller.changeMonth(value, controller.selectedMonth.value);
-                                }
-                              },
-                            )),
+                            Obx(
+                              () => DropdownButton<int>(
+                                value: controller.selectedYear.value,
+                                items:
+                                    List<int>.generate(
+                                      5,
+                                      (i) => DateTime.now().year + i - 1,
+                                    ).map((int value) {
+                                      return DropdownMenuItem<int>(
+                                        value: value,
+                                        child: Text(value.toString()),
+                                      );
+                                    }).toList(),
+                                onChanged: (int? value) {
+                                  if (value != null) {
+                                    controller.changeMonth(
+                                      value,
+                                      controller.selectedMonth.value,
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
                             const SizedBox(width: 32),
                             const Text('Mois:'),
                             const SizedBox(width: 16),
-                            Obx(() => DropdownButton<int>(
-                              value: controller.selectedMonth.value,
-                              items: List<int>.generate(12, (i) => i + 1)
-                                  .map((int value) {
-                                return DropdownMenuItem<int>(
-                                  value: value,
-                                  child: Text(controller.getMonthName(value)),
-                                );
-                              }).toList(),
-                              onChanged: (int? value) {
-                                if (value != null) {
-                                  controller.changeMonth(controller.selectedYear.value, value);
-                                }
-                              },
-                            )),
+                            Obx(
+                              () => DropdownButton<int>(
+                                value: controller.selectedMonth.value,
+                                items:
+                                    List<int>.generate(12, (i) => i + 1).map((
+                                      int value,
+                                    ) {
+                                      return DropdownMenuItem<int>(
+                                        value: value,
+                                        child: Text(
+                                          controller.getMonthName(value),
+                                        ),
+                                      );
+                                    }).toList(),
+                                onChanged: (int? value) {
+                                  if (value != null) {
+                                    controller.changeMonth(
+                                      controller.selectedYear.value,
+                                      value,
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
                           ],
                         ),
                       ],
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Services selection
                 Card(
                   child: Padding(
@@ -111,30 +146,34 @@ class ScheduleGenerationView extends GetView<ScheduleGenerationController> {
                           style: TextStyle(fontSize: 14),
                         ),
                         const SizedBox(height: 16),
-                        
+
                         if (controller.services.isEmpty)
-                          const Center(
-                            child: Text('Aucun service disponible'),
-                          )
+                          const Center(child: Text('Aucun service disponible'))
                         else
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
-                            children: controller.services.map((service) {
-                              return Obx(() => FilterChip(
-                                label: Text(service.nom),
-                                selected: controller.selectedServices.contains(service),
-                                onSelected: (selected) => controller.toggleServiceSelection(service),
-                              ));
-                            }).toList(),
+                            children:
+                                controller.services.map((service) {
+                                  return Obx(
+                                    () => FilterChip(
+                                      label: Text(service.nom),
+                                      selected: controller.selectedServices
+                                          .contains(service),
+                                      onSelected:
+                                          (selected) => controller
+                                              .toggleServiceSelection(service),
+                                    ),
+                                  );
+                                }).toList(),
                           ),
                       ],
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Generate button
                 Center(
                   child: Obx(() {

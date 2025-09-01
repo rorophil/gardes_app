@@ -1,4 +1,5 @@
-// Service model for Hive database
+/// Modèle de données pour un service médical utilisant Hive pour la persistance
+/// Contient les informations sur les privilèges requis et les jours bloqués
 import 'package:hive/hive.dart';
 import 'doctor_hive_model.dart';
 
@@ -12,7 +13,7 @@ class ServiceHive extends HiveObject {
   @HiveField(1)
   late String nom;
 
-  // Required privileges to work in this service (at least one match is needed)
+  // Privilèges requis pour travailler dans ce service (au moins une correspondance nécessaire)
   @HiveField(2)
   late bool requiresAnesthesiste;
 
@@ -25,10 +26,18 @@ class ServiceHive extends HiveObject {
   @HiveField(5)
   late bool requiresIntensiviste;
 
-  // Blocked days where no shifts are needed (stored as ISO date strings YYYY-MM-DD)
+  // Jours bloqués où aucune garde n'est nécessaire (stockés comme chaînes de dates ISO YYYY-MM-DD)
   @HiveField(6)
   late List<String> joursBloquees;
 
+  /// Constructeur pour créer une nouvelle instance de ServiceHive
+  /// [id] : Identifiant unique du service
+  /// [nom] : Nom du service
+  /// [requiresAnesthesiste] : Privilège anesthésiste requis
+  /// [requiresPediatrique] : Privilège pédiatrique requis
+  /// [requiresSamu] : Privilège SAMU requis
+  /// [requiresIntensiviste] : Privilège intensiviste requis
+  /// [joursBloquees] : Liste des jours où le service est fermé
   ServiceHive({
     required this.id,
     required this.nom,
@@ -39,7 +48,7 @@ class ServiceHive extends HiveObject {
     required this.joursBloquees,
   });
 
-  // Helper method to get all required privileges as a list
+  /// Retourne la liste de tous les privilèges requis comme énumération
   List<Privilege> get privileges {
     List<Privilege> result = [];
     if (requiresAnesthesiste) result.add(Privilege.anesthesiste);
@@ -49,16 +58,20 @@ class ServiceHive extends HiveObject {
     return result;
   }
 
-  // Check if a date is blocked for this service
+  /// Vérifie si une date est bloquée pour ce service
+  /// [date] : La date à vérifier
+  /// Retourne true si la date est bloquée
   bool isDateBlocked(DateTime date) {
     String dateString =
         "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
     return joursBloquees.contains(dateString);
   }
 
-  // Check if a doctor can work in this service
+  /// Vérifie si un médecin peut travailler dans ce service
+  /// [doctor] : Le médecin à vérifier
+  /// Retourne true si le médecin possède au moins un des privilèges requis
   bool acceptsDoctor(DoctorHive doctor) {
-    // Check if the doctor has any of the required privileges
+    // Vérifier si le médecin possède au moins un des privilèges requis
     for (final privilege in privileges) {
       if (doctor.hasPrivilege(privilege)) {
         return true;
@@ -67,7 +80,8 @@ class ServiceHive extends HiveObject {
     return false;
   }
 
-  // Helper method to add a blocked day
+  /// Ajoute un jour bloqué au service
+  /// [date] : La date à bloquer
   void addBlockedDay(DateTime date) {
     final dateString =
         "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
@@ -76,7 +90,8 @@ class ServiceHive extends HiveObject {
     }
   }
 
-  // Helper method to remove a blocked day
+  /// Supprime un jour bloqué du service
+  /// [date] : La date à débloquer
   void removeBlockedDay(DateTime date) {
     final dateString =
         "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";

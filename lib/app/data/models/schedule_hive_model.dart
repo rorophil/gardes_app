@@ -1,4 +1,5 @@
-// Schedule model for Hive database
+/// Modèle de données pour un planning de garde utilisant Hive pour la persistance
+/// Contient les références au médecin, service et la date de la garde
 import 'package:hive/hive.dart';
 
 part 'schedule_hive_model.g.dart';
@@ -8,17 +9,22 @@ class ScheduleHive extends HiveObject {
   @HiveField(0)
   late String id;
 
-  // References to doctor and service by ID
+  // Références vers le médecin et le service par ID
   @HiveField(1)
   late String doctorId;
 
   @HiveField(2)
   late String serviceId;
 
-  // Date of the shift (stored as milliseconds since epoch)
+  // Date de la garde (stockée en millisecondes depuis l'époque)
   @HiveField(3)
   late int dateMilliseconds;
 
+  /// Constructeur pour créer une nouvelle instance de ScheduleHive
+  /// [id] : Identifiant unique du planning
+  /// [doctorId] : Identifiant du médecin assigné
+  /// [serviceId] : Identifiant du service concerné
+  /// [dateMilliseconds] : Date de la garde en millisecondes
   ScheduleHive({
     required this.id,
     required this.doctorId,
@@ -26,34 +32,45 @@ class ScheduleHive extends HiveObject {
     required this.dateMilliseconds,
   });
 
-  // Getter for date
+  /// Getter pour récupérer la date comme objet DateTime
   DateTime get date => DateTime.fromMillisecondsSinceEpoch(dateMilliseconds);
 
-  // Setter for date
+  /// Setter pour définir la date comme objet DateTime
   set date(DateTime value) => dateMilliseconds = value.millisecondsSinceEpoch;
 
-  // Helper methods
+  /// Vérifie si la garde est prévue un week-end
+  /// Retourne true si c'est samedi ou dimanche
   bool isWeekend() {
     return date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
   }
 
+  /// Vérifie si la garde est prévue un vendredi
+  /// Retourne true si c'est vendredi
   bool isFriday() {
     return date.weekday == DateTime.friday;
   }
 
+  /// Vérifie si la garde est prévue un jeudi
+  /// Retourne true si c'est jeudi
   bool isThursday() {
     return date.weekday == DateTime.thursday;
   }
 
-  // For sorting and prioritizing shifts
+  /// Retourne la priorité de la garde pour le tri et la planification
+  /// 1 = priorité maximale (vendredi), 4 = priorité minimale (jeudi)
   int get priority {
-    if (isFriday()) return 1; // Highest priority
+    if (isFriday()) return 1; // Priorité maximale
     if (isWeekend()) return 2;
-    if (isThursday()) return 4; // Lowest priority
-    return 3; // Other weekdays
+    if (isThursday()) return 4; // Priorité minimale
+    return 3; // Autres jours de la semaine
   }
 
-  // Helper method for creating a modified copy of the schedule
+  /// Crée une copie modifiée du planning
+  /// [id] : Nouvel identifiant (optionnel)
+  /// [doctorId] : Nouvel identifiant de médecin (optionnel)
+  /// [serviceId] : Nouvel identifiant de service (optionnel)
+  /// [date] : Nouvelle date (optionnel)
+  /// Retourne une nouvelle instance de ScheduleHive
   ScheduleHive copyWith({
     String? id,
     String? doctorId,
@@ -68,7 +85,9 @@ class ScheduleHive extends HiveObject {
     );
   }
 
-  // Helper method to check if this schedule is for a specific date
+  /// Vérifie si ce planning correspond à une date spécifique
+  /// [targetDate] : La date à comparer
+  /// Retourne true si les dates correspondent (jour, mois, année)
   bool isOnDate(DateTime targetDate) {
     final scheduleDate = date;
     return scheduleDate.year == targetDate.year &&
@@ -76,7 +95,7 @@ class ScheduleHive extends HiveObject {
         scheduleDate.day == targetDate.day;
   }
 
-  // Helper method to get date as string
+  /// Retourne la date sous forme de chaîne formatée (YYYY-MM-DD)
   String get dateString {
     final d = date;
     return "${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}";

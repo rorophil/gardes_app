@@ -1,4 +1,5 @@
-// Schedule generation service
+/// Service de génération de plannings de garde
+/// Gère la création automatique et optimisée des plannings mensuels
 import 'package:get/get.dart';
 
 import '../models/doctor_hive_model.dart';
@@ -9,7 +10,11 @@ import 'database_service.dart';
 class ScheduleService extends GetxService {
   final DatabaseService _databaseService = Get.find<DatabaseService>();
 
-  // Generate a monthly schedule for a specific service
+  /// Génère un planning mensuel pour un service spécifique
+  /// [service] : Le service pour lequel générer le planning
+  /// [year] : L'année du planning
+  /// [month] : Le mois du planning (1-12)
+  /// Retourne une liste des plannings générés
   Future<List<ScheduleHive>> generateMonthlySchedule(
     ServiceHive service,
     int year,
@@ -22,7 +27,7 @@ class ScheduleService extends GetxService {
       return schedules;
     }
 
-    // Sort doctors by number of unavailable days (most unavailable first)
+    // Trier les médecins par nombre de jours indisponibles (plus indisponible en premier)
     eligibleDoctors.sort(
       (a, b) =>
           b.joursIndisponibles.length.compareTo(a.joursIndisponibles.length),
@@ -74,17 +79,25 @@ class ScheduleService extends GetxService {
     return schedules;
   }
 
-  // Helper methods
+  // =============== MÉTHODES AUXILIAIRES ===============
+
+  /// Récupère les médecins éligibles pour un service
+  /// [service] : Le service pour lequel filtrer les médecins
+  /// Retourne une liste des médecins ayant les privilèges requis
   List<DoctorHive> _getEligibleDoctors(ServiceHive service) {
     List<DoctorHive> allDoctors = _databaseService.getAllDoctors();
     return allDoctors.where((doctor) => service.acceptsDoctor(doctor)).toList();
   }
 
+  /// Génère la liste des dates d'un mois
+  /// [year] : L'année
+  /// [month] : Le mois (1-12)
+  /// Retourne une liste des dates du mois
   List<DateTime> _getDatesInMonth(int year, int month) {
     List<DateTime> dates = [];
 
     DateTime start = DateTime(year, month, 1);
-    DateTime end = DateTime(year, month + 1, 0); // Last day of month
+    DateTime end = DateTime(year, month + 1, 0); // Dernier jour du mois
 
     for (int i = 0; i < end.day; i++) {
       DateTime date = start.add(Duration(days: i));
@@ -94,24 +107,32 @@ class ScheduleService extends GetxService {
     return dates;
   }
 
+  /// Détermine la priorité d'une date pour l'assignation des gardes
+  /// [date] : La date à évaluer
+  /// Retourne un entier représentant la priorité (0 = priorité maximale)
   int _getDatePriority(DateTime date) {
-    if (date.weekday == DateTime.friday) return 0; // Highest priority
+    if (date.weekday == DateTime.friday) return 0; // Priorité maximale
     if (date.weekday == DateTime.saturday || date.weekday == DateTime.sunday)
       return 1;
-    if (date.weekday == DateTime.thursday) return 3; // Lowest priority
-    return 2; // Other weekdays
+    if (date.weekday == DateTime.thursday) return 3; // Priorité minimale
+    return 2; // Autres jours de la semaine
   }
 
+  /// Récupère les médecins disponibles pour une date donnée
+  /// [doctors] : Liste des médecins éligibles
+  /// [date] : Date pour laquelle vérifier la disponibilité
+  /// [currentSchedules] : Plannings déjà assignés
+  /// Retourne une liste des médecins disponibles
   List<DoctorHive> _getAvailableDoctorsForDate(
     List<DoctorHive> doctors,
     DateTime date,
     List<ScheduleHive> currentSchedules,
   ) {
     return doctors.where((doctor) {
-      // Check if doctor is available on this date
+      // Vérifier si le médecin est disponible à cette date
       if (!doctor.isAvailableOn(date)) return false;
 
-      // Check if the doctor already has a shift on this day in current schedules
+      // Vérifier si le médecin a déjà une garde ce jour dans les plannings actuels
       bool hasShiftOnDay = currentSchedules.any(
         (schedule) =>
             schedule.doctorId == doctor.id &&

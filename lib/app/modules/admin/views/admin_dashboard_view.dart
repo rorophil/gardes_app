@@ -4,9 +4,27 @@ import 'package:get/get.dart';
 import '../controllers/admin_controller.dart';
 //import '../../../global_widgets/app_widgets.dart';
 
+/// Vue du tableau de bord administrateur
+///
+/// Cette vue affiche le tableau de bord principal pour les administrateurs,
+/// avec des cartes de navigation vers les différentes fonctionnalités :
+/// - Gestion des médecins
+/// - Gestion des services
+/// - Génération des plannings
+/// - Visualisation des plannings
+///
+/// La vue s'adapte à la taille de l'écran (responsive design).
 class AdminDashboardView extends GetView<AdminController> {
+  /// Constructeur de la vue du tableau de bord administrateur
   const AdminDashboardView({super.key});
 
+  /// Construit l'interface utilisateur du tableau de bord
+  ///
+  /// L'interface s'adapte à la taille de l'écran :
+  /// - Desktop : grille 2x2
+  /// - Mobile : liste verticale
+  ///
+  /// Returns : Widget Scaffold contenant l'interface du tableau de bord
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,12 +53,13 @@ class AdminDashboardView extends GetView<AdminController> {
             } else {
               // Mobile layout - column
               return ListView(
-                children: _buildDashboardItems().map((item) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: item,
-                  );
-                }).toList(),
+                children:
+                    _buildDashboardItems().map((item) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: item,
+                      );
+                    }).toList(),
               );
             }
           },
@@ -49,6 +68,9 @@ class AdminDashboardView extends GetView<AdminController> {
     );
   }
 
+  /// Construit la liste des éléments du tableau de bord
+  ///
+  /// Returns : Liste des widgets Card représentant les différentes fonctionnalités
   List<Widget> _buildDashboardItems() {
     return [
       _buildDashboardCard(
@@ -82,12 +104,25 @@ class AdminDashboardView extends GetView<AdminController> {
     ];
   }
 
-  Widget _buildDashboardCard(String title, IconData icon, Color color, String description, VoidCallback onPressed) {
+  /// Construit une carte du tableau de bord
+  ///
+  /// [title] : Titre de la carte
+  /// [icon] : Icône à afficher
+  /// [color] : Couleur de l'icône
+  /// [description] : Description de la fonctionnalité
+  /// [onPressed] : Fonction à exécuter lors du clic
+  ///
+  /// Returns : Widget Card avec interface cliquable
+  Widget _buildDashboardCard(
+    String title,
+    IconData icon,
+    Color color,
+    String description,
+    VoidCallback onPressed,
+  ) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(12),
@@ -96,11 +131,7 @@ class AdminDashboardView extends GetView<AdminController> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                size: 60,
-                color: color,
-              ),
+              Icon(icon, size: 60, color: color),
               const SizedBox(height: 16),
               Text(
                 title,
@@ -114,9 +145,7 @@ class AdminDashboardView extends GetView<AdminController> {
               Text(
                 description,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey[700],
-                ),
+                style: TextStyle(color: Colors.grey[700]),
               ),
             ],
           ),

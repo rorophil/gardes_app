@@ -1,4 +1,5 @@
-// Schedule generation controller
+/// Contrôleur pour la génération automatique des plannings
+/// Gère la sélection des services et la génération des plannings mensuels
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 //import '../../../data/services/auth_service.dart';
@@ -13,14 +14,17 @@ class ScheduleGenerationController extends GetxController {
   final DatabaseService _databaseService = Get.find<DatabaseService>();
   final ScheduleService _scheduleService = Get.find<ScheduleService>();
 
+  // Variables réactives pour les données et l'état
   final RxList<ServiceHive> services = <ServiceHive>[].obs;
   final RxBool isLoading = false.obs;
   final RxBool isGenerating = false.obs;
 
+  // Variables réactives pour la sélection
   final RxInt selectedYear = DateTime.now().year.obs;
   final RxInt selectedMonth = DateTime.now().month.obs;
   final RxList<ServiceHive> selectedServices = <ServiceHive>[].obs;
 
+  // Variable réactive pour le statut de génération
   final RxString generationStatus = ''.obs;
 
   @override

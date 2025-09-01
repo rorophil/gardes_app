@@ -1,4 +1,5 @@
-// App routes definition
+/// Définition des routes de l'application
+/// Centralise toutes les routes et leurs liaisons (bindings) associées
 import 'package:get/get.dart';
 import '../modules/auth/bindings/auth_binding.dart';
 import '../modules/auth/views/login_view.dart';
@@ -16,6 +17,7 @@ import '../modules/schedule/views/schedule_generation_view.dart';
 import '../modules/schedule/views/schedule_view.dart';
 
 class AppRoutes {
+  // Constantes des routes de l'application
   static const String LOGIN = '/login';
   static const String ADMIN_DASHBOARD = '/admin';
   static const String DOCTOR_MANAGEMENT = '/admin/doctors';
@@ -26,13 +28,13 @@ class AppRoutes {
   static const String DOCTOR_AVAILABILITY = '/doctor/availability';
   static const String SCHEDULE_GENERATION = '/schedule/generate';
   static const String SCHEDULE_VIEW = '/schedule/view';
-  
+
+  /// Liste des pages de l'application avec leurs liaisons
+  /// Chaque page est associée à sa route, sa vue et ses dépendances
   static final routes = [
-    GetPage(
-      name: LOGIN,
-      page: () => LoginView(),
-      binding: AuthBinding(),
-    ),
+    // Route de connexion
+    GetPage(name: LOGIN, page: () => LoginView(), binding: AuthBinding()),
+    // Routes d'administration
     GetPage(
       name: ADMIN_DASHBOARD,
       page: () => AdminDashboardView(),

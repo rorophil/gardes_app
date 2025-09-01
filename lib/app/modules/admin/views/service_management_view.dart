@@ -4,9 +4,30 @@ import 'package:get/get.dart';
 import '../controllers/service_management_controller.dart';
 import '../../../data/models/service_hive_model.dart';
 
+/// Vue de gestion des services médicaux
+///
+/// Cette vue permet aux administrateurs de gérer la liste des services.
+/// Les fonctionnalités incluent :
+/// - Affichage de la liste complète des services
+/// - Ajout de nouveaux services
+/// - Modification des informations existantes
+/// - Suppression de services (avec confirmation)
+/// - Gestion des privilèges requis (IADE, IBODE, DES, etc.)
+/// - Configuration des jours bloqués par service
+///
+/// Chaque service est affiché avec ses informations principales,
+/// ses privilèges requis et des actions rapides pour l'édition
+/// ou la gestion des jours bloqués.
 class ServiceManagementView extends GetView<ServiceManagementController> {
+  /// Constructeur de la vue de gestion des services
   const ServiceManagementView({super.key});
 
+  /// Construit l'interface utilisateur de gestion des services
+  ///
+  /// Affiche une liste des services avec boutons d'action
+  /// et gestion des états de chargement/vide
+  ///
+  /// Returns : Widget Scaffold contenant l'interface de gestion
   @override
   Widget build(BuildContext context) {
     return Scaffold(
