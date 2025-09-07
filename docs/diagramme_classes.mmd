@@ -1,0 +1,66 @@
+
+classDiagram
+    class DoctorHiveModel {
+        +int id
+        +String nom
+        +String prenom
+        +String login
+        +String password
+        +List<int> services
+        +bool isAdmin
+    }
+    class ServiceHiveModel {
+        +int id
+        +String nom
+        +String description
+        +List<String> privileges
+        +List<DateTime> joursBloques
+    }
+    class ScheduleHiveModel {
+        +int id
+        +int doctorId
+        +int serviceId
+        +DateTime date
+    }
+    class AuthService {
+        +login()
+        +logout()
+        +register()
+    }
+    class DatabaseService {
+        +init()
+        +getDoctors()
+        +getServices()
+        +getSchedules()
+    }
+    class ScheduleService {
+        +generateSchedule()
+        +getSchedule()
+    }
+    class AdminController {
+        +goToDoctorManagement()
+        +goToServiceManagement()
+        +goToScheduleGeneration()
+        +goToScheduleView()
+    }
+    class DoctorController {
+        +loadSchedules()
+        +logout()
+    }
+    class ScheduleGenerationController {
+        +generate()
+        +loadServices()
+    }
+    class ScheduleViewController {
+        +loadSchedules()
+        +getMonthName()
+    }
+    DoctorHiveModel "*" -- "*" ServiceHiveModel : appartient
+    ScheduleHiveModel "*" -- "1" DoctorHiveModel : assigné
+    ScheduleHiveModel "*" -- "1" ServiceHiveModel : concerne
+    AdminController "1" -- "*" DoctorManagementView : gère
+    AdminController "1" -- "*" ServiceManagementView : gère
+    DoctorController "1" -- "*" DoctorDashboardView : gère
+    ScheduleGenerationController "1" -- "*" ScheduleGenerationView : gère
+    ScheduleViewController "1" -- "*" ScheduleView : gère
+    AuthService <|-- DatabaseService

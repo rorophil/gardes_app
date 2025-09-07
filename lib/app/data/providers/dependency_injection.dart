@@ -1,3 +1,4 @@
+// ignore: dangling_library_doc_comments
 /// Gestionnaire d'injection de dépendances pour l'application
 /// Initialise et configure tous les services nécessaires au démarrage
 import 'package:get/get.dart';
