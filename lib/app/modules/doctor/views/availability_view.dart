@@ -4,15 +4,32 @@ import 'package:get/get.dart';
 import '../controllers/availability_controller.dart';
 //import '../../../global_widgets/app_widgets.dart';
 
+/// Vue de gestion des disponibilités médecin
+///
+/// Cette vue permet aux médecins de gérer leurs jours d'indisponibilité.
+/// Les fonctionnalités incluent :
+/// - Affichage du calendrier mensuel
+/// - Sélection/désélection des jours indisponibles
+/// - Sauvegarde des modifications
+/// - Navigation entre les mois
+///
+/// Les indisponibilités sont utilisées lors de la génération automatique
+/// des plannings de garde pour éviter d'assigner des gardes aux médecins
+/// non disponibles.
 class AvailabilityView extends GetView<AvailabilityController> {
+  /// Constructeur de la vue de gestion des disponibilités
   const AvailabilityView({super.key});
 
+  /// Construit l'interface utilisateur de gestion des disponibilités
+  ///
+  /// Affiche un calendrier interactif permettant de sélectionner
+  /// les jours d'indisponibilité
+  ///
+  /// Returns : Widget Scaffold contenant l'interface de calendrier
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mes Jours Indisponibles'),
-      ),
+      appBar: AppBar(title: const Text('Mes Jours Indisponibles')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -40,9 +57,9 @@ class AvailabilityView extends GetView<AvailabilityController> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Month selector
             Card(
               child: Padding(
@@ -57,53 +74,70 @@ class AvailabilityView extends GetView<AvailabilityController> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Obx(() => DropdownButton<int>(
-                      value: controller.selectedYear.value,
-                      items: List<int>.generate(5, (i) => DateTime.now().year + i - 2)
-                          .map((int value) {
-                        return DropdownMenuItem<int>(
-                          value: value,
-                          child: Text(value.toString()),
-                        );
-                      }).toList(),
-                      onChanged: (int? value) {
-                        if (value != null) {
-                          controller.changeMonth(value, controller.selectedMonth.value);
-                        }
-                      },
-                    )),
+                    Obx(
+                      () => DropdownButton<int>(
+                        value: controller.selectedYear.value,
+                        items:
+                            List<int>.generate(
+                              5,
+                              (i) => DateTime.now().year + i - 2,
+                            ).map((int value) {
+                              return DropdownMenuItem<int>(
+                                value: value,
+                                child: Text(value.toString()),
+                              );
+                            }).toList(),
+                        onChanged: (int? value) {
+                          if (value != null) {
+                            controller.changeMonth(
+                              value,
+                              controller.selectedMonth.value,
+                            );
+                          }
+                        },
+                      ),
+                    ),
                     const SizedBox(width: 16),
-                    Obx(() => DropdownButton<int>(
-                      value: controller.selectedMonth.value,
-                      items: List<int>.generate(12, (i) => i + 1)
-                          .map((int value) {
-                        return DropdownMenuItem<int>(
-                          value: value,
-                          child: Text(_getMonthName(value)),
-                        );
-                      }).toList(),
-                      onChanged: (int? value) {
-                        if (value != null) {
-                          controller.changeMonth(controller.selectedYear.value, value);
-                        }
-                      },
-                    )),
+                    Obx(
+                      () => DropdownButton<int>(
+                        value: controller.selectedMonth.value,
+                        items:
+                            List<int>.generate(12, (i) => i + 1).map((
+                              int value,
+                            ) {
+                              return DropdownMenuItem<int>(
+                                value: value,
+                                child: Text(_getMonthName(value)),
+                              );
+                            }).toList(),
+                        onChanged: (int? value) {
+                          if (value != null) {
+                            controller.changeMonth(
+                              controller.selectedYear.value,
+                              value,
+                            );
+                          }
+                        },
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Calendar
             Expanded(
               child: Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Obx(() => _buildCalendar(
-                    controller.selectedYear.value,
-                    controller.selectedMonth.value,
-                  )),
+                  child: Obx(
+                    () => _buildCalendar(
+                      controller.selectedYear.value,
+                      controller.selectedMonth.value,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -112,12 +146,12 @@ class AvailabilityView extends GetView<AvailabilityController> {
       ),
     );
   }
-  
+
   Widget _buildCalendar(int year, int month) {
     final daysInMonth = DateTime(year, month + 1, 0).day;
     final firstDayOfMonth = DateTime(year, month, 1);
     final dayOffset = firstDayOfMonth.weekday % 7;
-    
+
     return Column(
       children: [
         // Days of week header
@@ -128,13 +162,25 @@ class AvailabilityView extends GetView<AvailabilityController> {
             Expanded(child: Text('Mer', textAlign: TextAlign.center)),
             Expanded(child: Text('Jeu', textAlign: TextAlign.center)),
             Expanded(child: Text('Ven', textAlign: TextAlign.center)),
-            Expanded(child: Text('Sam', textAlign: TextAlign.center, style: TextStyle(color: Colors.red))),
-            Expanded(child: Text('Dim', textAlign: TextAlign.center, style: TextStyle(color: Colors.red))),
+            Expanded(
+              child: Text(
+                'Sam',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+            Expanded(
+              child: Text(
+                'Dim',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
           ],
         ),
-        
+
         const Divider(),
-        
+
         // Calendar grid
         Expanded(
           child: GridView.builder(
@@ -147,11 +193,11 @@ class AvailabilityView extends GetView<AvailabilityController> {
               if (index < dayOffset) {
                 return Container(); // Empty cell for days before first day of month
               }
-              
+
               final day = index - dayOffset + 1;
               final date = DateTime(year, month, day);
               final isUnavailable = controller.isDateUnavailable(date);
-              
+
               return InkWell(
                 onTap: () => controller.toggleDateAvailability(date),
                 child: Container(
@@ -166,7 +212,10 @@ class AvailabilityView extends GetView<AvailabilityController> {
                         child: Text(
                           day.toString(),
                           style: TextStyle(
-                            fontWeight: isUnavailable ? FontWeight.bold : FontWeight.normal,
+                            fontWeight:
+                                isUnavailable
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
                           ),
                         ),
                       ),
@@ -187,9 +236,9 @@ class AvailabilityView extends GetView<AvailabilityController> {
             },
           ),
         ),
-        
+
         const Divider(),
-        
+
         // Legend
         Row(
           children: [
@@ -208,22 +257,35 @@ class AvailabilityView extends GetView<AvailabilityController> {
       ],
     );
   }
-  
+
   String _getMonthName(int month) {
     switch (month) {
-      case 1: return 'Janvier';
-      case 2: return 'Février';
-      case 3: return 'Mars';
-      case 4: return 'Avril';
-      case 5: return 'Mai';
-      case 6: return 'Juin';
-      case 7: return 'Juillet';
-      case 8: return 'Août';
-      case 9: return 'Septembre';
-      case 10: return 'Octobre';
-      case 11: return 'Novembre';
-      case 12: return 'Décembre';
-      default: return '';
+      case 1:
+        return 'Janvier';
+      case 2:
+        return 'Février';
+      case 3:
+        return 'Mars';
+      case 4:
+        return 'Avril';
+      case 5:
+        return 'Mai';
+      case 6:
+        return 'Juin';
+      case 7:
+        return 'Juillet';
+      case 8:
+        return 'Août';
+      case 9:
+        return 'Septembre';
+      case 10:
+        return 'Octobre';
+      case 11:
+        return 'Novembre';
+      case 12:
+        return 'Décembre';
+      default:
+        return '';
     }
   }
 }

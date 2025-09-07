@@ -6,9 +6,29 @@ import 'package:get/get.dart';
 import '../controllers/service_form_controller.dart';
 import '../../../global_widgets/app_widgets.dart';
 
+/// Vue du formulaire de service
+///
+/// Cette vue affiche un formulaire pour créer ou modifier un service médical.
+/// Elle permet également de gérer les jours bloqués pour le service.
+///
+/// Le formulaire contient :
+/// - Nom du service
+/// - Description
+/// - Privilèges requis (IADE, IBODE, DES, etc.)
+/// - Gestion des jours bloqués
+///
+/// La vue s'adapte entre le mode formulaire et le mode gestion des jours bloqués.
 class ServiceFormView extends GetView<ServiceFormController> {
+  /// Constructeur de la vue du formulaire service
   const ServiceFormView({super.key});
 
+  /// Construit l'interface utilisateur du formulaire
+  ///
+  /// L'interface s'adapte selon le mode :
+  /// - Mode formulaire : création/modification du service
+  /// - Mode jours bloqués : gestion du calendrier des blocages
+  ///
+  /// Returns : Widget Scaffold contenant l'interface adaptée
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,14 +37,16 @@ class ServiceFormView extends GetView<ServiceFormController> {
         child: Obx(() {
           if (controller.isBlockedDaysMode.value) {
             return AppBar(
-              title: Text('Jours Bloqués - ${controller.currentService.value?.nom ?? ""}'),
+              title: Text(
+                'Jours Bloqués - ${controller.currentService.value?.nom ?? ""}',
+              ),
             );
           } else {
             return AppBar(
               title: Text(
-                controller.isEditing.value 
-                    ? 'Modifier un Service' 
-                    : 'Ajouter un Service'
+                controller.isEditing.value
+                    ? 'Modifier un Service'
+                    : 'Ajouter un Service',
               ),
             );
           }
@@ -39,7 +61,7 @@ class ServiceFormView extends GetView<ServiceFormController> {
       }),
     );
   }
-  
+
   Widget _buildServiceFormContent() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -62,7 +84,7 @@ class ServiceFormView extends GetView<ServiceFormController> {
                         controller: controller.nomController,
                         validator: controller.validateRequiredField,
                       ),
-                      
+
                       const SizedBox(height: 24),
                       const Text(
                         'Privilèges Requis',
@@ -71,39 +93,49 @@ class ServiceFormView extends GetView<ServiceFormController> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      
+
                       // Sélection des privilèges requis pour ce service
-                      Obx(() => Column(
-                        children: [
-                          AppCheckbox(
-                            label: 'Anesthésiste',
-                            value: controller.requiresAnesthesiste.value,
-                            onChanged: (value) => 
-                              controller.requiresAnesthesiste.value = value ?? false,
-                          ),
-                          AppCheckbox(
-                            label: 'Pédiatrique',
-                            value: controller.requiresPediatrique.value,
-                            onChanged: (value) => 
-                              controller.requiresPediatrique.value = value ?? false,
-                          ),
-                          AppCheckbox(
-                            label: 'SAMU',
-                            value: controller.requiresSamu.value,
-                            onChanged: (value) => 
-                              controller.requiresSamu.value = value ?? false,
-                          ),
-                          AppCheckbox(
-                            label: 'Intensiviste',
-                            value: controller.requiresIntensiviste.value,
-                            onChanged: (value) => 
-                              controller.requiresIntensiviste.value = value ?? false,
-                          ),
-                        ],
-                      )),
-                      
+                      Obx(
+                        () => Column(
+                          children: [
+                            AppCheckbox(
+                              label: 'Anesthésiste',
+                              value: controller.requiresAnesthesiste.value,
+                              onChanged:
+                                  (value) =>
+                                      controller.requiresAnesthesiste.value =
+                                          value ?? false,
+                            ),
+                            AppCheckbox(
+                              label: 'Pédiatrique',
+                              value: controller.requiresPediatrique.value,
+                              onChanged:
+                                  (value) =>
+                                      controller.requiresPediatrique.value =
+                                          value ?? false,
+                            ),
+                            AppCheckbox(
+                              label: 'SAMU',
+                              value: controller.requiresSamu.value,
+                              onChanged:
+                                  (value) =>
+                                      controller.requiresSamu.value =
+                                          value ?? false,
+                            ),
+                            AppCheckbox(
+                              label: 'Intensiviste',
+                              value: controller.requiresIntensiviste.value,
+                              onChanged:
+                                  (value) =>
+                                      controller.requiresIntensiviste.value =
+                                          value ?? false,
+                            ),
+                          ],
+                        ),
+                      ),
+
                       const SizedBox(height: 32),
-                      
+
                       // Save button
                       AppButton(
                         text: 'Enregistrer',
@@ -120,7 +152,7 @@ class ServiceFormView extends GetView<ServiceFormController> {
       ),
     );
   }
-  
+
   Widget _buildBlockedDaysContent() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -135,59 +167,71 @@ class ServiceFormView extends GetView<ServiceFormController> {
                 children: [
                   const Text(
                     'Sélectionner le mois:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const SizedBox(width: 16),
+                  Obx(
+                    () => DropdownButton<int>(
+                      value: controller.selectedYear.value,
+                      items:
+                          List<int>.generate(
+                            5,
+                            (i) => DateTime.now().year + i - 2,
+                          ).map((int value) {
+                            return DropdownMenuItem<int>(
+                              value: value,
+                              child: Text(value.toString()),
+                            );
+                          }).toList(),
+                      onChanged: (int? value) {
+                        if (value != null) {
+                          controller.changeMonth(
+                            value,
+                            controller.selectedMonth.value,
+                          );
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Obx(() => DropdownButton<int>(
-                    value: controller.selectedYear.value,
-                    items: List<int>.generate(5, (i) => DateTime.now().year + i - 2)
-                        .map((int value) {
-                      return DropdownMenuItem<int>(
-                        value: value,
-                        child: Text(value.toString()),
-                      );
-                    }).toList(),
-                    onChanged: (int? value) {
-                      if (value != null) {
-                        controller.changeMonth(value, controller.selectedMonth.value);
-                      }
-                    },
-                  )),
-                  const SizedBox(width: 16),
-                  Obx(() => DropdownButton<int>(
-                    value: controller.selectedMonth.value,
-                    items: List<int>.generate(12, (i) => i + 1)
-                        .map((int value) {
-                      return DropdownMenuItem<int>(
-                        value: value,
-                        child: Text(_getMonthName(value)),
-                      );
-                    }).toList(),
-                    onChanged: (int? value) {
-                      if (value != null) {
-                        controller.changeMonth(controller.selectedYear.value, value);
-                      }
-                    },
-                  )),
+                  Obx(
+                    () => DropdownButton<int>(
+                      value: controller.selectedMonth.value,
+                      items:
+                          List<int>.generate(12, (i) => i + 1).map((int value) {
+                            return DropdownMenuItem<int>(
+                              value: value,
+                              child: Text(_getMonthName(value)),
+                            );
+                          }).toList(),
+                      onChanged: (int? value) {
+                        if (value != null) {
+                          controller.changeMonth(
+                            controller.selectedYear.value,
+                            value,
+                          );
+                        }
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Calendrier pour sélectionner les jours bloqués
           Expanded(
             child: Card(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Obx(() => _buildCalendar(
-                  controller.selectedYear.value,
-                  controller.selectedMonth.value,
-                )),
+                child: Obx(
+                  () => _buildCalendar(
+                    controller.selectedYear.value,
+                    controller.selectedMonth.value,
+                  ),
+                ),
               ),
             ),
           ),
@@ -195,13 +239,13 @@ class ServiceFormView extends GetView<ServiceFormController> {
       ),
     );
   }
-  
+
   Widget _buildCalendar(int year, int month) {
     // Calcul des jours dans le mois et du premier jour du mois
     final daysInMonth = DateTime(year, month + 1, 0).day;
     final firstDayOfMonth = DateTime(year, month, 1);
     final dayOffset = firstDayOfMonth.weekday % 7;
-    
+
     return Column(
       children: [
         // En-tête des jours de la semaine
@@ -212,13 +256,25 @@ class ServiceFormView extends GetView<ServiceFormController> {
             Expanded(child: Text('Mer', textAlign: TextAlign.center)),
             Expanded(child: Text('Jeu', textAlign: TextAlign.center)),
             Expanded(child: Text('Ven', textAlign: TextAlign.center)),
-            Expanded(child: Text('Sam', textAlign: TextAlign.center, style: TextStyle(color: Colors.red))),
-            Expanded(child: Text('Dim', textAlign: TextAlign.center, style: TextStyle(color: Colors.red))),
+            Expanded(
+              child: Text(
+                'Sam',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+            Expanded(
+              child: Text(
+                'Dim',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
           ],
         ),
-        
+
         const Divider(),
-        
+
         // Grille du calendrier avec les jours cliquables
         Expanded(
           child: GridView.builder(
@@ -231,11 +287,11 @@ class ServiceFormView extends GetView<ServiceFormController> {
               if (index < dayOffset) {
                 return Container(); // Cellule vide pour les jours avant le premier jour du mois
               }
-              
+
               final day = index - dayOffset + 1;
               final date = DateTime(year, month, day);
               final isBlocked = controller.isDateBlocked(date);
-              
+
               // Case du calendrier cliquable pour bloquer/débloquer un jour
               return InkWell(
                 onTap: () => controller.toggleDateBlock(date),
@@ -251,7 +307,8 @@ class ServiceFormView extends GetView<ServiceFormController> {
                         child: Text(
                           day.toString(),
                           style: TextStyle(
-                            fontWeight: isBlocked ? FontWeight.bold : FontWeight.normal,
+                            fontWeight:
+                                isBlocked ? FontWeight.bold : FontWeight.normal,
                           ),
                         ),
                       ),
@@ -272,9 +329,9 @@ class ServiceFormView extends GetView<ServiceFormController> {
             },
           ),
         ),
-        
+
         const Divider(),
-        
+
         // Legend
         Row(
           children: [
@@ -293,23 +350,36 @@ class ServiceFormView extends GetView<ServiceFormController> {
       ],
     );
   }
-  
+
   // Fonction d'aide pour obtenir le nom du mois en français
   String _getMonthName(int month) {
     switch (month) {
-      case 1: return 'Janvier';
-      case 2: return 'Février';
-      case 3: return 'Mars';
-      case 4: return 'Avril';
-      case 5: return 'Mai';
-      case 6: return 'Juin';
-      case 7: return 'Juillet';
-      case 8: return 'Août';
-      case 9: return 'Septembre';
-      case 10: return 'Octobre';
-      case 11: return 'Novembre';
-      case 12: return 'Décembre';
-      default: return '';
+      case 1:
+        return 'Janvier';
+      case 2:
+        return 'Février';
+      case 3:
+        return 'Mars';
+      case 4:
+        return 'Avril';
+      case 5:
+        return 'Mai';
+      case 6:
+        return 'Juin';
+      case 7:
+        return 'Juillet';
+      case 8:
+        return 'Août';
+      case 9:
+        return 'Septembre';
+      case 10:
+        return 'Octobre';
+      case 11:
+        return 'Novembre';
+      case 12:
+        return 'Décembre';
+      default:
+        return '';
     }
   }
 }

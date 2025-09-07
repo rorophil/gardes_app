@@ -1,4 +1,5 @@
-// Doctor module controller
+/// Contrôleur principal du module médecin
+/// Gère le tableau de bord et les plannings du médecin connecté
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../../data/services/auth_service.dart';
@@ -12,12 +13,17 @@ class DoctorController extends GetxController {
   final AuthService _authService;
   final DatabaseService _databaseService;
 
+  // Variables réactives pour l'état du médecin
   final Rx<DoctorHive?> currentDoctor = Rx<DoctorHive?>(null);
   final RxList<ScheduleHive> schedules = <ScheduleHive>[].obs;
 
+  /// Constructeur avec injection de dépendances
+  /// [authService] : Service d'authentification (optionnel)
+  /// [databaseService] : Service de base de données (optionnel)
   DoctorController({AuthService? authService, DatabaseService? databaseService})
     : _authService = authService ?? Get.find<AuthService>(),
       _databaseService = databaseService ?? Get.find<DatabaseService>();
+
   // Cache des services pour affichage
   final RxMap<String, ServiceHive> servicesCache = RxMap<String, ServiceHive>();
   final RxBool isLoading = true.obs;

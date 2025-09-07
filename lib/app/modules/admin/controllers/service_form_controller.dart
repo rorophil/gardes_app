@@ -1,4 +1,5 @@
-// Service form controller
+/// Contrôleur pour le formulaire de création/modification des services
+/// Gère également la gestion des jours bloqués pour chaque service
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 //import 'package:realm/realm.dart';
@@ -9,20 +10,23 @@ import '../../../data/models/service_hive_model.dart';
 class ServiceFormController extends GetxController {
   final DatabaseService _databaseService = Get.find<DatabaseService>();
 
+  // Contrôleur de formulaire
   final formKey = GlobalKey<FormState>();
   final nomController = TextEditingController();
 
+  // Variables réactives pour les privilèges requis
   final RxBool requiresAnesthesiste = false.obs;
   final RxBool requiresPediatrique = false.obs;
   final RxBool requiresSamu = false.obs;
   final RxBool requiresIntensiviste = false.obs;
 
+  // État du formulaire
   final RxBool isEditing = false.obs;
   final RxBool isBlockedDaysMode = false.obs;
 
   late Rx<ServiceHive?> currentService = Rx<ServiceHive?>(null);
 
-  // For blocked days
+  // Gestion des jours bloqués
   final RxList<String> blockedDays = <String>[].obs;
   final Rx<DateTime> selectedDate = DateTime.now().obs;
   final RxInt selectedYear = DateTime.now().year.obs;
@@ -32,12 +36,15 @@ class ServiceFormController extends GetxController {
   void onInit() {
     super.onInit();
 
+    // Vérifier le mode (édition normale ou gestion des jours bloqués)
     if (Get.arguments != null) {
       if (Get.arguments is ServiceHive) {
+        // Mode édition normale
         isEditing.value = true;
         currentService.value = Get.arguments as ServiceHive;
         _loadServiceData();
       } else if (Get.arguments is Map) {
+        // Mode gestion des jours bloqués
         final args = Get.arguments as Map;
         if (args.containsKey('service')) {
           isEditing.value = true;
@@ -52,6 +59,8 @@ class ServiceFormController extends GetxController {
     }
   }
 
+  /// Charge les données du service en mode édition
+  /// Remplit les champs du formulaire avec les données existantes
   void _loadServiceData() {
     final service = currentService.value;
     if (service != null) {

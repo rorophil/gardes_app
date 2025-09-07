@@ -4,9 +4,29 @@ import 'package:get/get.dart';
 import '../controllers/doctor_management_controller.dart';
 import '../../../data/models/doctor_hive_model.dart';
 
+/// Vue de gestion des médecins
+///
+/// Cette vue permet aux administrateurs de gérer la liste des médecins.
+/// Les fonctionnalités incluent :
+/// - Affichage de la liste complète des médecins
+/// - Ajout de nouveaux médecins
+/// - Modification des informations existantes
+/// - Suppression de médecins (avec confirmation)
+/// - Recherche et filtrage
+/// - Visualisation des services assignés à chaque médecin
+///
+/// Chaque médecin est affiché avec ses informations principales
+/// et des actions rapides pour l'édition ou la suppression.
 class DoctorManagementView extends GetView<DoctorManagementController> {
+  /// Constructeur de la vue de gestion des médecins
   const DoctorManagementView({super.key});
 
+  /// Construit l'interface utilisateur de gestion des médecins
+  ///
+  /// Affiche une liste des médecins avec boutons d'action
+  /// et gestion des états de chargement/vide
+  ///
+  /// Returns : Widget Scaffold contenant l'interface de gestion
   @override
   Widget build(BuildContext context) {
     return Scaffold(

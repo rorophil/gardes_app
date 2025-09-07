@@ -6,9 +6,25 @@ import '../../../global_widgets/app_widgets.dart';
 import '../../../data/models/schedule_hive_model.dart';
 //import '../../../data/models/service_model.dart';
 
+/// Vue du tableau de bord médecin
+///
+/// Cette vue affiche le tableau de bord principal pour les médecins connectés.
+/// Elle présente :
+/// - Les prochaines gardes assignées
+/// - Les disponibilités définies
+/// - Les actions disponibles (gérer disponibilités, actualiser)
+///
+/// L'interface s'adapte dynamiquement selon les données du médecin connecté.
 class DoctorDashboardView extends GetView<DoctorController> {
+  /// Constructeur de la vue du tableau de bord médecin
   const DoctorDashboardView({super.key});
 
+  /// Construit l'interface utilisateur du tableau de bord
+  ///
+  /// Affiche un accueil personnalisé et les informations pertinentes
+  /// pour le médecin connecté
+  ///
+  /// Returns : Widget Scaffold contenant l'interface du tableau de bord
   @override
   Widget build(BuildContext context) {
     return Scaffold(

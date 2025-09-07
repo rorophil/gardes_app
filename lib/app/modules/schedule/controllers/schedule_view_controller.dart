@@ -1,4 +1,5 @@
-// Schedule view controller
+/// Contrôleur pour la vue de visualisation et gestion des plannings
+/// Gère l'affichage interactif des plannings avec drag & drop
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 //import '../../../data/services/auth_service.dart';
@@ -12,14 +13,16 @@ class ScheduleViewController extends GetxController {
   final DatabaseService _databaseService = Get.find<DatabaseService>();
   final ScheduleService _scheduleService = Get.find<ScheduleService>();
 
+  // Variables réactives pour les données affichées
   final RxList<ServiceHive> services = <ServiceHive>[].obs;
   final RxList<ServiceHive> displayedServices = <ServiceHive>[].obs;
   final RxList<DoctorHive> availableDoctors = <DoctorHive>[].obs;
 
+  // Variables réactives pour la période sélectionnée
   final RxInt selectedYear = DateTime.now().year.obs;
   final RxInt selectedMonth = DateTime.now().month.obs;
 
-  // Map to hold schedules for each service
+  // Carte contenant les plannings pour chaque service
   final Rx<Map<String, List<ScheduleHive>>> schedulesByService =
       Rx<Map<String, List<ScheduleHive>>>({});
 

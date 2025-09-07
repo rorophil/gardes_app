@@ -1,4 +1,5 @@
-// Doctor management controller
+/// Contrôleur pour la gestion des médecins dans l'interface d'administration
+/// Gère la liste, création, modification et suppression des médecins
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../../data/services/database_service.dart';
@@ -8,6 +9,7 @@ import '../../../routes/app_routes.dart';
 class DoctorManagementController extends GetxController {
   final DatabaseService _databaseService = Get.find<DatabaseService>();
 
+  // Variables réactives pour l'état de la liste
   final RxList<DoctorHive> doctors = <DoctorHive>[].obs;
   final RxBool isLoading = true.obs;
 
@@ -17,6 +19,8 @@ class DoctorManagementController extends GetxController {
     loadDoctors();
   }
 
+  /// Charge la liste des médecins depuis la base de données
+  /// Met à jour l'interface utilisateur avec les données récupérées
   Future<void> loadDoctors() async {
     isLoading.value = true;
     try {
@@ -34,10 +38,15 @@ class DoctorManagementController extends GetxController {
     }
   }
 
+  /// Navigue vers le formulaire de création d'un nouveau médecin
+  /// Recharge la liste au retour pour afficher les modifications
   void createDoctor() {
     Get.toNamed(AppRoutes.DOCTOR_FORM)?.then((_) => loadDoctors());
   }
 
+  /// Navigue vers le formulaire d'édition d'un médecin existant
+  /// [doctor] : Le médecin à modifier
+  /// Recharge la liste au retour pour afficher les modifications
   void editDoctor(DoctorHive doctor) {
     Get.toNamed(
       AppRoutes.DOCTOR_FORM,
@@ -45,6 +54,8 @@ class DoctorManagementController extends GetxController {
     )?.then((_) => loadDoctors());
   }
 
+  /// Affiche une boîte de dialogue de confirmation pour supprimer un médecin
+  /// [doctor] : Le médecin à supprimer
   void deleteDoctor(DoctorHive doctor) {
     Get.dialog(
       AlertDialog(

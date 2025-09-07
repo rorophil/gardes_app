@@ -1,4 +1,5 @@
-// Doctor availability controller
+/// Contrôleur pour la gestion des disponibilités du médecin
+/// Permet au médecin de définir ses jours d'indisponibilité
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 //import 'package:realm/realm.dart';
@@ -10,9 +11,11 @@ class AvailabilityController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
   final DatabaseService _databaseService = Get.find<DatabaseService>();
 
+  // Variables réactives pour l'état du médecin et ses disponibilités
   final Rx<DoctorHive?> currentDoctor = Rx<DoctorHive?>(null);
-
   final RxList<String> unavailableDays = <String>[].obs;
+
+  // Variables réactives pour la navigation dans le calendrier
   final Rx<DateTime> selectedDate = DateTime.now().obs;
   final RxInt selectedYear = DateTime.now().year.obs;
   final RxInt selectedMonth = DateTime.now().month.obs;
@@ -20,12 +23,16 @@ class AvailabilityController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Initialiser avec le médecin actuellement connecté
     currentDoctor.value = _authService.currentUser.value;
     if (currentDoctor.value != null) {
       unavailableDays.value = currentDoctor.value!.joursIndisponibles.toList();
     }
   }
 
+  /// Bascule la disponibilité d'une date (disponible/indisponible)
+  /// [date] : La date pour laquelle basculer la disponibilité
+  /// Met à jour immédiatement la base de données
   void toggleDateAvailability(DateTime date) {
     if (currentDoctor.value == null) return;
 

@@ -8,9 +8,31 @@ import '../../../data/models/doctor_hive_model.dart';
 import '../../../data/models/schedule_hive_model.dart';
 //import '../../../global_widgets/app_widgets.dart';
 
+/// Vue de visualisation des plannings
+///
+/// Cette vue affiche les plannings de garde existants et permet
+/// de les consulter et modifier.
+///
+/// Les fonctionnalités incluent :
+/// - Navigation entre les mois et années
+/// - Sélection du service à afficher
+/// - Affichage sous forme de calendrier
+/// - Modification manuelle des gardes
+/// - Ajout/suppression de gardes ponctuelles
+/// - Export des plannings
+///
+/// L'interface s'adapte selon les permissions de l'utilisateur
+/// (consultation seule pour les médecins, modification pour les admins).
 class ScheduleView extends GetView<ScheduleViewController> {
+  /// Constructeur de la vue de visualisation des plannings
   const ScheduleView({super.key});
 
+  /// Construit l'interface utilisateur de visualisation des plannings
+  ///
+  /// Affiche un calendrier avec les gardes assignées et les contrôles
+  /// de navigation/filtrage
+  ///
+  /// Returns : Widget Scaffold contenant l'interface de planning
   @override
   Widget build(BuildContext context) {
     return Scaffold(

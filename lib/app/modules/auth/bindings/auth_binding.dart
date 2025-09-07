@@ -1,12 +1,12 @@
-// Auth binding
+/// Liaison des dépendances pour le module d'authentification
+/// Configure l'injection des contrôleurs nécessaires à l'authentification
 import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
 
 class AuthBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<AuthController>(
-      () => AuthController(),
-    );
+    // Injection paresseuse du contrôleur d'authentification
+    Get.lazyPut<AuthController>(() => AuthController());
   }
 }
