@@ -15,6 +15,8 @@ import '../modules/doctor/views/availability_view.dart';
 import '../modules/schedule/bindings/schedule_binding.dart';
 import '../modules/schedule/views/schedule_generation_view.dart';
 import '../modules/schedule/views/schedule_view.dart';
+import '../modules/debug/bindings/debug_binding.dart';
+import '../modules/debug/views/hive_debug_view.dart';
 
 class AppRoutes {
   // Constantes des routes de l'application
@@ -28,6 +30,7 @@ class AppRoutes {
   static const String DOCTOR_AVAILABILITY = '/doctor/availability';
   static const String SCHEDULE_GENERATION = '/schedule/generate';
   static const String SCHEDULE_VIEW = '/schedule/view';
+  static const String DEBUG_HIVE = '/debug/hive';
 
   /// Liste des pages de l'application avec leurs liaisons
   /// Chaque page est associée à sa route, sa vue et ses dépendances
@@ -79,6 +82,12 @@ class AppRoutes {
       name: SCHEDULE_VIEW,
       page: () => ScheduleView(),
       binding: ScheduleBinding(),
+    ),
+    // Route de debug (disponible uniquement en mode développement)
+    GetPage(
+      name: DEBUG_HIVE,
+      page: () => HiveDebugView(),
+      binding: DebugBinding(),
     ),
   ];
 }
