@@ -53,7 +53,7 @@ class HiveDebugController extends GetxController {
     } catch (e) {
       Get.snackbar(
         'Erreur',
-        'Impossible de charger les données Hive: ${e.toString()}',
+        'Impossible de charger les données Hive: \${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
       );
     } finally {
@@ -74,7 +74,7 @@ class HiveDebugController extends GetxController {
       AlertDialog(
         title: const Text('Confirmation'),
         content: Text(
-          'Voulez-vous vraiment supprimer toutes les données de la table "$tableName" ?',
+          'Voulez-vous vraiment supprimer toutes les données de la table "\$tableName" ?',
         ),
         actions: [
           TextButton(
@@ -113,14 +113,14 @@ class HiveDebugController extends GetxController {
         await loadAllData();
         Get.snackbar(
           'Succès',
-          'Table "$tableName" vidée avec succès',
+          'Table "\$tableName" vidée avec succès',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green,
         );
       } catch (e) {
         Get.snackbar(
           'Erreur',
-          'Impossible de vider la table: ${e.toString()}',
+          'Impossible de vider la table: \${e.toString()}',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.red,
         );
@@ -133,6 +133,20 @@ class HiveDebugController extends GetxController {
     if (!isDebugMode) return;
 
     try {
+      // Vider toutes les tables avant de créer les données de test (séquentiellement)
+      for (final doctor in doctors) {
+        await _databaseService.deleteDoctor(doctor.id);
+      }
+      for (final service in services) {
+        await _databaseService.deleteService(service.id);
+      }
+      for (final schedule in schedules) {
+        await _databaseService.deleteSchedule(schedule.id);
+      }
+
+      // Attendre un peu pour que les suppressions soient bien effectives
+      await Future.delayed(const Duration(milliseconds: 100));
+
       // Créer des médecins de test
       await _databaseService.createDoctor(
         nom: 'Dupont',
@@ -146,6 +160,7 @@ class HiveDebugController extends GetxController {
         maxGardesParMois: 7,
         joursMinEntreGardes: 3,
       );
+      await Future.delayed(const Duration(milliseconds: 100));
 
       await _databaseService.createDoctor(
         nom: 'Martin',
@@ -159,8 +174,9 @@ class HiveDebugController extends GetxController {
         maxGardesParMois: 7,
         joursMinEntreGardes: 3,
       );
+      await Future.delayed(const Duration(milliseconds: 100));
 
-      // Créer 25 médecins anesthésistes supplémentaires
+      // Créer 25 médecins anesthésistes supplémentaires (total: 27 médecins)
       final List<Map<String, String>> medecinsData = [
         {'nom': 'Bernard', 'prenom': 'Pierre'},
         {'nom': 'Durand', 'prenom': 'Sophie'},
@@ -189,6 +205,7 @@ class HiveDebugController extends GetxController {
         {'nom': 'Girard', 'prenom': 'Patrick'},
       ];
 
+      // Créer tous les médecins supplémentaires séquentiellement
       for (int i = 0; i < medecinsData.length; i++) {
         final medecin = medecinsData[i];
         final login =
@@ -206,6 +223,7 @@ class HiveDebugController extends GetxController {
           maxGardesParMois: 7, // Maximum 7 gardes par mois
           joursMinEntreGardes: 3, // Minimum 3 jours entre les gardes
         );
+        await Future.delayed(const Duration(milliseconds: 100));
       }
 
       // Créer des services de test
@@ -216,6 +234,7 @@ class HiveDebugController extends GetxController {
         requiresSamu: false,
         requiresIntensiviste: false,
       );
+      await Future.delayed(const Duration(milliseconds: 100));
 
       await _databaseService.createService(
         nom: 'Maternité',
@@ -224,6 +243,8 @@ class HiveDebugController extends GetxController {
         requiresSamu: false,
         requiresIntensiviste: false,
       );
+      await Future.delayed(const Duration(milliseconds: 100));
+
       await _databaseService.createService(
         nom: 'Samu',
         requiresAnesthesiste: true,
@@ -231,11 +252,15 @@ class HiveDebugController extends GetxController {
         requiresSamu: true,
         requiresIntensiviste: true,
       );
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Attendre un peu pour que toutes les données soient bien enregistrées
+      await Future.delayed(const Duration(milliseconds: 100));
 
       await loadAllData();
       Get.snackbar(
         'Succès',
-        'Données de test créées avec succès',
+        'Données de test créées avec succès (${doctors.length} médecins, ${services.length} services)',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
       );
@@ -290,7 +315,7 @@ class HiveDebugController extends GetxController {
         (s) => s.id == schedule.serviceId,
       );
       buffer.writeln(
-        '- ${schedule.dateString}: ${doctor?.displayName ?? 'Médecin inconnu'} -> ${service?.nom ?? 'Service inconnu'}',
+        '- ${schedule.dateString}: ${doctor?.displayName ?? "Médecin inconnu"} -> ${service?.nom ?? "Service inconnu"}',
       );
     }
 
