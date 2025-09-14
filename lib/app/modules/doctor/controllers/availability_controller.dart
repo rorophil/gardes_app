@@ -19,6 +19,7 @@ class AvailabilityController extends GetxController {
   final Rx<DateTime> selectedDate = DateTime.now().obs;
   final RxInt selectedYear = DateTime.now().year.obs;
   final RxInt selectedMonth = DateTime.now().month.obs;
+  final RxBool isModified = false.obs;
 
   @override
   void onInit() {
@@ -42,9 +43,12 @@ class AvailabilityController extends GetxController {
     // Mise à jour de la liste locale
     if (updatedUnavailableDays.contains(dateString)) {
       updatedUnavailableDays.remove(dateString);
+      isModified.value = true;
     } else {
       updatedUnavailableDays.add(dateString);
+      isModified.value = true;
     }
+    isModified.value = false;
 
     // Création d'une nouvelle instance de DoctorHive avec les jours indisponibles mis à jour
     final doctor = currentDoctor.value!;

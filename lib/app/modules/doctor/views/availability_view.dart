@@ -136,6 +136,7 @@ class AvailabilityView extends GetView<AvailabilityController> {
                     () => _buildCalendar(
                       controller.selectedYear.value,
                       controller.selectedMonth.value,
+                      controller.isModified.value,
                     ),
                   ),
                 ),
@@ -147,7 +148,7 @@ class AvailabilityView extends GetView<AvailabilityController> {
     );
   }
 
-  Widget _buildCalendar(int year, int month) {
+  Widget _buildCalendar(int year, int month, bool isModified) {
     final daysInMonth = DateTime(year, month + 1, 0).day;
     final firstDayOfMonth = DateTime(year, month, 1);
     final dayOffset = firstDayOfMonth.weekday % 7;
