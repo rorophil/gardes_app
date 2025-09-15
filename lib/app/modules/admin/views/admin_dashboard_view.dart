@@ -1,7 +1,9 @@
 // Admin dashboard view
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/admin_controller.dart';
+import '../../../routes/app_routes.dart';
 //import '../../../global_widgets/app_widgets.dart';
 
 /// Vue du tableau de bord administrateur
@@ -31,6 +33,13 @@ class AdminDashboardView extends GetView<AdminController> {
       appBar: AppBar(
         title: const Text('Tableau de Bord Administrateur'),
         actions: [
+          // Bouton de debug visible uniquement en mode développement
+          if (kDebugMode)
+            IconButton(
+              icon: const Icon(Icons.bug_report),
+              onPressed: () => Get.toNamed(AppRoutes.DEBUG_HIVE),
+              tooltip: 'Debug Hive',
+            ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: controller.logout,
@@ -72,7 +81,7 @@ class AdminDashboardView extends GetView<AdminController> {
   ///
   /// Returns : Liste des widgets Card représentant les différentes fonctionnalités
   List<Widget> _buildDashboardItems() {
-    return [
+    final items = [
       _buildDashboardCard(
         'Gestion des Médecins',
         Icons.person,
@@ -102,6 +111,21 @@ class AdminDashboardView extends GetView<AdminController> {
         controller.goToScheduleView,
       ),
     ];
+
+    // Ajouter le bouton de debug en mode développement
+    if (kDebugMode) {
+      items.add(
+        _buildDashboardCard(
+          'Debug Hive',
+          Icons.bug_report,
+          Colors.red,
+          'Visualiser les tables de données (Debug uniquement)',
+          () => Get.toNamed(AppRoutes.DEBUG_HIVE),
+        ),
+      );
+    }
+
+    return items;
   }
 
   /// Construit une carte du tableau de bord
